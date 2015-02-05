@@ -1,0 +1,64 @@
+val
++ - ! ~ () []
+Unaries/call/subscript
+right-to-left
+
+factor
+* / %
+Multiplication/division/modulus
+left-to-right
+
+term
++ -
+Addition/subtraction
+left-to-right
+
+exprI
+<< >>
+Shift
+left-to-right
+
+exprH
+< <= > >=
+Comparison 1
+left-to-right
+
+exprG
+== !=
+Comparison 2
+left-to-right
+
+exprF
+&
+Bitwise AND
+left-to-right
+
+exprE
+^
+Bitwise XOR
+left-to-right
+
+exprD
+|
+Bitwise OR
+left-to-right
+
+exprC
+&&
+Logical AND
+left-to-right
+
+exprB
+||
+Logical OR
+left-to-right
+
+exprA
+? :
+Ternary conditional
+right-to-left
+
+expr
+= += -= *= /= %= &= ^= |= &&= ||= <<= >>=
+Assignment
+right-to-left

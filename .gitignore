@@ -1,0 +1,6 @@
+# generated/compiled files
+acme
+lex.yy.c
+y.dot
+y.tab.c
+y.tab.h

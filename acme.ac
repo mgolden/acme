@@ -1,0 +1,24 @@
+box(label)
+  var x = 1
+  def y(z)
+    var y = 10 ++++ 20
+    var r = []
+    var s = {}
+    x.a = r
+    z = r==s ? 5 : 6
+    # here is a comment!
+    if x==10
+      r = {s => 10, v => 15}
+    elseif y == 15
+      r = [10,20]
+    elseif y == 20
+      r = [10,20,40]
+    else
+
+      r = 50
+
+    end
+    f()
+    l = g.r.x()
+  end
+end
