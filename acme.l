@@ -18,17 +18,27 @@ else                    return_it(TOKELSE);
 elseif                  return_it(TOKELSEIF);
 empty                   return_it(TOKEMPTY);
 return                  return_it(TOKRETURN);
+try                     return_it(TOKTRY);
+catch                   return_it(TOKCATCH);
+do                      return_it(TOKDO);
+block_given?            return_it(TOKBLOCKGIVEN);
+nil                     return_it(TOKNIL);
+yield                   return_it(TOKYIELD);
 
                         /* Numbers, strings */
 [0-9]+                  {yylval.number=atoi(yytext); return(TOKNUMBER);}
-\"(\\.|[^\n\\"])*\"     return_it(TOKDSTRING);
-\'(\\.|[^\n\\'])*\'     return_it(TOKSSTRING);
+\"(\\.|[^\n\\"])*\"     return_it(TOKSTRING);
+\'(\\.|[^\n\\'])*\'     return_it(TOKSTRING);
 
                         /* Token */
-[a-z0-9_]+?{0,1}        return_it(TOKWORD);
+[A-Za-z0-9_]+\?{0,1}    return_it(TOKWORD);
+
+                        /* Symbol */
+:[A-Za-z0-9_\(\)\[\]]+\?{0,1}   return_it(TOKSYMBOL);
 
                         /* EOL */
 \n                      return_it(TOKEOL);
+;                       return_it(TOKEOL);
 
                         /* Operators */
 \.                      return_it(TOKDOT);

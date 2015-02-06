@@ -17,23 +17,34 @@ main()
   yyparse();
 }
 
-static void * param(const char *s){printf("param(%s)\n",s); return((void *) s);}
 static void * new_empty_signature(){printf("new_empty_signature\n"); return(NULL);}
+static void * param(const char *s){printf("param(%s)\n", s); return(NULL);}
+static void * param_with_default(const char *s, const char * p){printf("param(%s, *)\n", s); return(NULL);}
+static void * star_param(const char *s){printf("param(%s, *)\n", s); return(NULL);}
 
-static void new_string(const char *s){printf("new_string(%s)\n", s);}
-static void add_var(const char *s){printf("add_var(%s)\n",s);}
-static void get_reference(const char *s){printf("get_reference(%s)\n",s);}
-static void get_member_reference(const char *s){printf("get_member_reference(%s)\n",s);}
-static void operator_call(const char *s){printf("operator_call(%s)\n",s);}
-static void unary_call(const char *s){printf("unary_call(%s)\n",s);}
-static void start_box(const char *s){printf("start_box(%s)\n",s);}
+static void * new_string(const char *s){printf("new_string(%s)\n", s);}
+static void * add_symbol(const char *s){printf("add_symbol(%s)\n", s);}
 
-static void push_nil(){printf("push_nil\n");}
+static void * add_var(const char *s){printf("add_var(%s)\n", s); return(NULL);}
+static void * get_reference(const char *s){printf("get_reference(%s)\n", s); return(NULL);}
+static void * get_member_reference(const char *s){printf("get_member_reference(%s)\n", s); return(NULL);}
+
+static void * new_int(long long n){printf("new_int(%d)\n", (int) n);}
+static void * new_array(long long n){printf("new_array(%d)\n", (int) n);}
+static void * new_hash(long long n){printf("new_hash(%d)\n", (int) n);}
+static void * get_nil(){printf("get_nil\n"); return(NULL);}
+static void * block_given(){printf("block_given\n"); return(NULL);}
+
+static void operator_call(const char *s){printf("operator_call(%s)\n", s);}
+static void unary_call(const char *s){printf("unary_call(%s)\n", s);}
+static void start_box(const char *s){printf("start_box(%s)\n", s);}
+
+static void push_stack(const void *p){printf("push_stack(*)\n");}
+
 static void assign_var(){printf("assign_var\n");}
 static void pop_frame(){printf("pop_frame\n");}
 static void push_frame(){printf("push_frame\n");}
 static void pop_stack(){printf("pop_stack\n");}
-static void emit_signature(){printf("emit_signature\n");}
 static void dereference(){printf("dereference\n");}
 static void end_box(){printf("end_box\n");}
 static void start_if(){printf("start_if\n");}
@@ -41,14 +52,16 @@ static void start_else(){printf("start_else\n");}
 static void start_elseif(){printf("start_elseif\n");}
 static void end_if(){printf("end_if\n");}
 
-static void do_function_call(int n){printf("do_function_call(%d)\n", n);}
-static void new_int(int n){printf("new_int(%d)\n", n);}
-static void new_array(int n){printf("new_array(%d)\n", n);}
-static void new_hash(int n){printf("new_hash(%d)\n", n);}
+static void do_function_call(long long n){printf("do_function_call(%d)\n", (int) n);}
 
+static void signature_append(const void * x, const char * y){printf("signature_append(*,*)\n");}
+static void emit_function(const char * s, const void * p){printf("emit_function(%s, *)\n", s);}
+static void emit_pipe_param_list(const char *s){printf("emit_pipe_param_list(*)\n");}
 
-static void signature_append(const void *x, const char * s){printf("signature_append(*,%s)\n", s);}
+static void push_compile(){printf("push_compile()\n");}
+static void * pop_compile(){printf("pop_compile()\n"); return(NULL);}
 
+static void *signature = NULL;
 %}
 
 %token TOKEOF  0  "end of file"
@@ -64,14 +77,22 @@ static void signature_append(const void *x, const char * s){printf("signature_ap
 %token <string> TOKELSEIF
 %token <string> TOKEMPTY
 %token <string> TOKRETURN
+%token <string> TOKTRY
+%token <string> TOKCATCH
+%token <string> TOKDO
+%token <string> TOKBLOCKGIVEN
+%token <string> TOKNIL
+%token <string> TOKYIELD
 
 /* Numbers, strings */
 %token <number> TOKNUMBER
-%token <string> TOKDSTRING
-%token <string> TOKSSTRING
+%token <string> TOKSTRING
 
 /* Token */
 %token <string> TOKWORD
+
+/* Token */
+%token <string> TOKSYMBOL
 
 /* EOL */
 %token <string> TOKEOL
@@ -139,14 +160,14 @@ static void signature_append(const void *x, const char * s){printf("signature_ap
 
 %union 
 {
-  int number;
+  long long number;
   char *string;
   void *ptr;
 }
 
-%type <ptr> signature
-%type <ptr> param_list
-%type <ptr> param
+%type <ptr> param_with_default
+%type <ptr> initializer_expression
+%type <ptr> symbol
 
 %type <string> unary
 %type <string> add
@@ -158,6 +179,7 @@ static void signature_append(const void *x, const char * s){printf("signature_ap
 %type <string> assignboolop
 
 %type <number> expr_list
+%type <number> pure_expr_list
 %type <number> hash_list
 %type <number> arg_declaritor
 
@@ -172,7 +194,7 @@ start:
 
 internal_statement_list:
   {
-    push_nil();
+    push_stack(get_nil());
   }
   | internal_statement_list popped_internal_statement
   ;
@@ -190,7 +212,7 @@ popped_statement1:
   
 external_statement_list:
   {
-    push_nil();
+    push_stack(get_nil());
   }
   | external_statement_list popped_external_statement
   ;
@@ -216,44 +238,103 @@ def_statement:
   ;
   
 def_begin:
-  def_declaritor signature TOKEOL
+  TOKDEF TOKWORD start_signature signature TOKEOL
   {
     push_frame();
-    emit_signature($2); /* Also must free the signature */
+    emit_function($2, signature); /* Also must free the signature */
+  }
+  ;
+
+start_signature:
+  {
+    signature = new_empty_signature();
   }
   ;
   
-def_declaritor:
-  TOKDEF TOKWORD
-  ;
-
 signature:
-  {
-    $$ = new_empty_signature();
-  }
-  | TOKLPAREN param_list TOKRPAREN
-  {
-    $$ = $2;
-  }
+  | TOKLPAREN TOKRPAREN
+  | TOKLPAREN non_empty_signature TOKRPAREN
   ;
 
+/* There must be a better way to do this */
+non_empty_signature:
+  param_list
+  {}
+  | param_list TOKCOMMA param_with_default_list
+  {}
+  | param_with_default_list
+  {}
+  | param_list TOKCOMMA TOKSTAR TOKWORD
+  {
+    signature_append(signature, star_param($4));
+  }
+  | param_list TOKCOMMA param_with_default_list TOKCOMMA TOKSTAR TOKWORD
+  {
+    signature_append(signature, star_param($6));
+  }
+  | param_with_default_list TOKCOMMA TOKSTAR TOKWORD
+  {
+    signature_append(signature, star_param($4));
+  }
+  | TOKSTAR TOKWORD
+  {
+    signature_append(signature, star_param($2));
+  }
+  ;
+  
 param_list:
-  param
-  {
-    $$ = new_empty_signature();
-    signature_append($$, $1);
-  }
-  | param_list TOKCOMMA param
-  {
-    $$ = $1;
-    signature_append($$, $3);
-  }
-  ;
-
-param:
   TOKWORD
   {
-    $$ = param($1);
+    signature_append(signature, param($1));
+  }
+  | param_list TOKCOMMA TOKWORD
+  {
+    signature_append(signature, param($3));
+  }
+  ;
+
+param_with_default_list:
+  param_with_default
+  {
+    signature_append(signature, $1);
+  }
+  | param_with_default_list TOKCOMMA param_with_default
+  {
+    signature_append(signature, $3);
+  }
+  ;
+
+param_with_default:
+  TOKWORD TOKEQ initializer_expression
+  {
+    $$ = param_with_default($1, $3);
+  }
+  ;
+
+initializer_expression:
+  symbol
+  {
+    $$ = $1;
+  }
+  | TOKNUMBER
+  {
+    $$ = new_int($1);
+  }
+  | TOKSTRING
+  {
+    $$ = new_string($1);
+  }
+  | TOKNIL
+  {
+    $$ = get_nil();
+  }
+  | TOKLBRACK TOKRBRACK
+  {
+    $$ = new_array(0);
+  }
+  | TOKLBRACE TOKRBRACE
+  {
+    $$ = new_hash(0);
   }
   ;
 
@@ -313,28 +394,39 @@ assignboolop:
   }
   ;
 
+symbol:
+  TOKSYMBOL
+  {
+    $$ = add_symbol($1);
+  }
+  ;
+
 val:
   TOKLPAREN expr TOKRPAREN
   {}
-  | unary val
+  | TOKNUMBER
   {
-    unary_call($1);
+    push_stack(new_int($1));
+  }
+  | TOKSTRING
+  {
+    push_stack(new_string($1));
+  }
+  | TOKBLOCKGIVEN
+  {
+    push_stack(block_given());
+  }
+  | symbol
+  {
+    push_stack($1);
   }
   | array
   {}
   | hash
   {}
-  | TOKNUMBER
+  | unary val
   {
-    new_int($1);
-  }
-  | TOKDSTRING
-  {
-    new_string($1);
-  }
-  | TOKSSTRING
-  {
-    new_string($1);
+    unary_call($1);
   }
   | function_call
   {}
@@ -512,32 +604,81 @@ expr:
   nonifexpr
   | ifexpr
   ;
-  
+
 function_call:
-  lexpr arg_declaritor
+  lexpr arg_declaritor function_call1 optional_block
   {
     do_function_call($2);
+  }
+  ;
+
+function_call1:
+  {
+    signature = new_empty_signature();
+  }
+  ;
+
+optional_block:
+  {
+    push_stack(get_nil());
+  }
+  | TOKDO optional_pipe_param_list TOKEOL optional_block1 internal_statement_list TOKEND
+  {
+    push_stack(pop_compile());
+  }
+  ;
+
+optional_block1:
+  {
+    push_compile();
+  }
+  ;
+
+optional_pipe_param_list:
+  {
+    emit_pipe_param_list(signature);
+  }
+  | TOKPIPE param_list TOKPIPE
+  {
+    emit_pipe_param_list(signature);
   }
   ;
 
 array:
   TOKLBRACK TOKRBRACK
   {
-    new_array(0);
+    push_stack(new_array(0));
   }
   | TOKLBRACK expr_list TOKRBRACK
   {
-    new_array($2);
+    push_stack(new_array($2));
   }
   ;
 
 expr_list:
+  pure_expr_list
+  {
+    $$ = $1;
+  }
+  | pure_expr_list TOKCOMMA hash_list
+  {
+    push_stack(new_hash($3));
+    $$ = $1 + 1;
+  }
+  | hash_list
+  {
+    push_stack(new_hash($1));
+    $$ = 1;
+  }
+  ;
+
+pure_expr_list:
   expr
   {
     $$ = 1;
   }
   |
-  expr_list TOKCOMMA expr
+  pure_expr_list TOKCOMMA expr
   {
     $$ = $1 + 1;
   }
@@ -546,11 +687,11 @@ expr_list:
 hash:
   TOKLBRACE TOKRBRACE
   {
-    new_hash(0);
+    push_stack(new_hash(0));
   }
   | TOKLBRACE hash_list TOKRBRACE
   {
-    new_hash($2);
+    push_stack(new_hash($2));
   }
   ;
 
@@ -583,15 +724,15 @@ arg_declaritor:
 lexpr:
   TOKVAR TOKWORD
   {
-    add_var($2);
+    push_stack(add_var($2));
   }
   | TOKWORD
   {
-    get_reference($1);
+    push_stack(get_reference($1));
   }
   | val TOKDOT TOKWORD
   {
-    get_member_reference($3);
+    push_stack(get_member_reference($3));
   }
   ;
 
