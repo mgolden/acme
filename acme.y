@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "acme_types.h"
+
 void yyerror(const char *str)
 {
   fprintf(stderr,"error: %s\n",str);
@@ -29,9 +31,9 @@ static void * add_var(const char *s){printf("add_var(%s)\n", s); return(NULL);}
 static void * get_reference(const char *s){printf("get_reference(%s)\n", s); return(NULL);}
 static void * get_member_reference(const char *s){printf("get_member_reference(%s)\n", s); return(NULL);}
 
-static void * new_int(long long n){printf("new_int(%d)\n", (int) n);}
-static void * new_array(long long n){printf("new_array(%d)\n", (int) n);}
-static void * new_hash(long long n){printf("new_hash(%d)\n", (int) n);}
+static void * new_int(acme_int n){printf("new_int(%d)\n", (int) n);}
+static void * new_array(acme_int n){printf("new_array(%d)\n", (int) n);}
+static void * new_hash(acme_int n){printf("new_hash(%d)\n", (int) n);}
 static void * get_nil(){printf("get_nil\n"); return(NULL);}
 static void * block_given(){printf("block_given\n"); return(NULL);}
 
@@ -52,7 +54,7 @@ static void start_else(){printf("start_else\n");}
 static void start_elseif(){printf("start_elseif\n");}
 static void end_if(){printf("end_if\n");}
 
-static void do_function_call(long long n){printf("do_function_call(%d)\n", (int) n);}
+static void do_function_call(acme_int n){printf("do_function_call(%d)\n", (int) n);}
 
 static void signature_append(const void * x, const char * y){printf("signature_append(*,*)\n");}
 static void emit_function(const char * s, const void * p){printf("emit_function(%s, *)\n", s);}
@@ -160,7 +162,7 @@ static void *signature = NULL;
 
 %union 
 {
-  long long number;
+  acme_int number;
   char *string;
   void *ptr;
 }
