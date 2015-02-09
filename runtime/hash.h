@@ -3,9 +3,9 @@
 
 #include <gc.h>
 
-#include "acme_types.h"
+#include "../acme_types.h"
 
-#include "uthash.h"
+#include "../uthash/src/uthash.h"
 
 /* Make sure we're using the libgc version of malloc and free */
 #undef uthash_malloc

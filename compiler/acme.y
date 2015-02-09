@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "acme_types.h"
+#include "../acme_types.h"
 
 void yyerror(const char *str)
 {
@@ -20,30 +20,33 @@ main()
 }
 
 static void * new_empty_signature(){printf("new_empty_signature\n"); return(NULL);}
-static void * param(const char *s){printf("param(%s)\n", s); return(NULL);}
-static void * param_with_default(const char *s, const char * p){printf("param(%s, *)\n", s); return(NULL);}
-static void * star_param(const char *s){printf("param(%s, *)\n", s); return(NULL);}
+static void * param(symbol sym){printf("param(*)\n"); return(NULL);}
+static void * param_with_default(symbol sym, const char * p){printf("param(*, *)\n"); return(NULL);}
+static void * star_param(symbol sym){printf("param(*)\n"); return(NULL);}
 
-static void * new_string(const char *s){printf("new_string(%s)\n", s);}
-static void * add_symbol(const char *s){printf("add_symbol(%s)\n", s);}
+static void * new_s_thing(const char *s){printf("new_s_thing(%s)\n", s);}
+static symbol add_symbol(const char *s){printf("add_symbol(%s)\n", s); return 0;}
 
-static void * add_var(const char *s){printf("add_var(%s)\n", s); return(NULL);}
-static void * get_reference(const char *s){printf("get_reference(%s)\n", s); return(NULL);}
-static void * get_member_reference(const char *s){printf("get_member_reference(%s)\n", s); return(NULL);}
+static void add_var(symbol sym){printf("add_var(*)\n");}
+static void * get_reference(symbol sym){printf("get_reference(*)\n"); return(NULL);}
+static void * get_member_reference(symbol sym){printf("get_member_reference(*)\n"); return(NULL);}
 
-static void * new_int(acme_int n){printf("new_int(%d)\n", (int) n);}
-static void * new_array(acme_int n){printf("new_array(%d)\n", (int) n);}
-static void * new_hash(acme_int n){printf("new_hash(%d)\n", (int) n);}
+static void * new_i_thing(acme_int n){printf("new_i_thing(%d)\n", (int) n);}
+static void * new_f_thing(acme_float f){printf("new_f_thing(%lf)\n", (double) f);}
+static void * new_sym_thing(symbol sym){printf("new_sym_thing(*)\n");}
+static void * new_array_thing(int n){printf("new_array_thing(%d)\n", n);}
+static void * new_hash(int n){printf("new_hash(%d)\n", n);}
 static void * get_nil(){printf("get_nil\n"); return(NULL);}
 static void * block_given(){printf("block_given\n"); return(NULL);}
 
 static void operator_call(const char *s){printf("operator_call(%s)\n", s);}
 static void unary_call(const char *s){printf("unary_call(%s)\n", s);}
-static void start_box(const char *s){printf("start_box(%s)\n", s);}
+static void start_box(symbol sym){printf("start_box(*)\n");}
 
 static void push_stack(const void *p){printf("push_stack(*)\n");}
 
 static void assign_var(){printf("assign_var\n");}
+static void assign_array_var(){printf("assign_array_var\n");}
 static void pop_frame(){printf("pop_frame\n");}
 static void push_frame(){printf("push_frame\n");}
 static void pop_stack(){printf("pop_stack\n");}
@@ -57,7 +60,7 @@ static void end_if(){printf("end_if\n");}
 static void do_function_call(acme_int n){printf("do_function_call(%d)\n", (int) n);}
 
 static void signature_append(const void * x, const char * y){printf("signature_append(*,*)\n");}
-static void emit_function(const char * s, const void * p){printf("emit_function(%s, *)\n", s);}
+static void emit_function(symbol sym, const void * p){printf("emit_function(*, *)\n");}
 static void emit_pipe_param_list(const char *s){printf("emit_pipe_param_list(*)\n");}
 
 static void push_compile(){printf("push_compile()\n");}
@@ -69,116 +72,122 @@ static void *signature = NULL;
 %token TOKEOF  0  "end of file"
 
 /* Keywords */
-%token <string> TOKBOX
-%token <string> TOKEND
-%token <string> TOKDEF
-%token <string> TOKVAR
-%token <string> TOKSELF
-%token <string> TOKIF
-%token <string> TOKELSE
-%token <string> TOKELSEIF
-%token <string> TOKEMPTY
-%token <string> TOKRETURN
-%token <string> TOKTRY
-%token <string> TOKCATCH
-%token <string> TOKDO
-%token <string> TOKBLOCKGIVEN
-%token <string> TOKNIL
-%token <string> TOKYIELD
+%token <s> TOKBOX
+%token <s> TOKEND
+%token <s> TOKDEF
+%token <s> TOKVAR
+%token <s> TOKSELF
+%token <s> TOKIF
+%token <s> TOKELSE
+%token <s> TOKELSEIF
+%token <s> TOKEMPTY
+%token <s> TOKRETURN
+%token <s> TOKTRY
+%token <s> TOKCATCH
+%token <s> TOKDO
+%token <s> TOKBLOCKGIVEN
+%token <s> TOKNIL
+%token <s> TOKYIELD
 
 /* Numbers, strings */
-%token <number> TOKNUMBER
-%token <string> TOKSTRING
+%token <i> TOKI
+%token <f> TOKF
+%token <s> TOKS
 
 /* Token */
-%token <string> TOKWORD
+%token <s> TOKWORD
 
 /* Token */
-%token <string> TOKSYMBOL
+%token <s> TOKSYMBOL
 
 /* EOL */
-%token <string> TOKEOL
+%token <s> TOKEOL
 
 /* Operators */
-%token <string> TOKDOT
+%token <s> TOKDOT
 
-%token <string> TOKPLUS
-%token <string> TOKMINUS
-%token <string> TOKBANG
-%token <string> TOKTILDE
+%token <s> TOKPLUS
+%token <s> TOKMINUS
+%token <s> TOKBANG
+%token <s> TOKTILDE
 
-%token <string> TOKSTAR
-%token <string> TOKSLASH
-%token <string> TOKPERCENT
+%token <s> TOKSTAR
+%token <s> TOKSLASH
+%token <s> TOKPERCENT
 
-%token <string> TOKSHIFTL
-%token <string> TOKSHIFTR
+%token <s> TOKSHIFTL
+%token <s> TOKSHIFTR
 
-%token <string> TOKGT
-%token <string> TOKLT
-%token <string> TOKGE
-%token <string> TOKLE
+%token <s> TOKGT
+%token <s> TOKLT
+%token <s> TOKGE
+%token <s> TOKLE
 
-%token <string> TOKEQEQ
-%token <string> TOKNEQ
+%token <s> TOKEQEQ
+%token <s> TOKNEQ
+%token <s> TOKCOMPARE
 
-%token <string> TOKAMP
+%token <s> TOKAMP
 
-%token <string> TOKCARAT
+%token <s> TOKCARAT
 
-%token <string> TOKPIPE
+%token <s> TOKPIPE
 
-%token <string> TOKAND
+%token <s> TOKAND
 
-%token <string> TOKOR
+%token <s> TOKOR
 
-%token <string> TOKQUEST
-%token <string> TOKCOLON
+%token <s> TOKQUEST
+%token <s> TOKCOLON
 
-%token <string> TOKEQ
-%token <string> TOKPLUSEQ
-%token <string> TOKMINUSEQ
-%token <string> TOKSTAREQ
-%token <string> TOKSLASHEQ
-%token <string> TOKPERCENTEQ
-%token <string> TOKAMPEQ
-%token <string> TOKCARATEQ
-%token <string> TOKPIPEEQ
-%token <string> TOKANDEQ
-%token <string> TOKOREQ
-%token <string> TOKSHIFTLEQ
-%token <string> TOKSHIFTREQ
+%token <s> TOKEQ
+%token <s> TOKPLUSEQ
+%token <s> TOKMINUSEQ
+%token <s> TOKSTAREQ
+%token <s> TOKSLASHEQ
+%token <s> TOKPERCENTEQ
+%token <s> TOKAMPEQ
+%token <s> TOKCARATEQ
+%token <s> TOKPIPEEQ
+%token <s> TOKANDEQ
+%token <s> TOKOREQ
+%token <s> TOKSHIFTLEQ
+%token <s> TOKSHIFTREQ
 
-%token <string> TOKLBRACE
-%token <string> TOKRBRACE
-%token <string> TOKLPAREN
-%token <string> TOKRPAREN
-%token <string> TOKLBRACK
-%token <string> TOKRBRACK
+%token <s> TOKLBRACE
+%token <s> TOKRBRACE
+%token <s> TOKLPAREN
+%token <s> TOKRPAREN
+%token <s> TOKLBRACK
+%token <s> TOKRBRACK
 
-%token <string> TOKHASHROCK
+%token <s> TOKHASHROCK
 
-%token <string> TOKCOMMA
+%token <s> TOKCOMMA
 
 %union 
 {
-  acme_int number;
-  char *string;
+  acme_int i;
+  acme_float f;
+  char *s;
+  symbol sym;
+  int number;
   void *ptr;
 }
 
 %type <ptr> param_with_default
 %type <ptr> initializer_expression
-%type <ptr> symbol
+%type <sym> symbol
+%type <sym> function_name
 
-%type <string> unary
-%type <string> add
-%type <string> mul
-%type <string> shift
-%type <string> comparisonA
-%type <string> comparisonB
-%type <string> assignop
-%type <string> assignboolop
+%type <s> unary
+%type <s> add
+%type <s> mul
+%type <s> shift
+%type <s> comparisonA
+%type <s> comparisonB
+%type <s> assignop
+%type <s> assignboolop
 
 %type <number> expr_list
 %type <number> pure_expr_list
@@ -240,13 +249,36 @@ def_statement:
   ;
   
 def_begin:
-  TOKDEF TOKWORD start_signature signature TOKEOL
+  TOKDEF function_name start_signature signature TOKEOL
   {
     push_frame();
     emit_function($2, signature); /* Also must free the signature */
   }
   ;
 
+function_name:
+  TOKWORD
+  {
+    $$ = add_symbol($1);
+  }
+  | TOKWORD TOKEQ
+  {
+    /* Allowed, but not implemented yet */
+    char *c = malloc(strlen($1)+1);
+    strcpy(c, $1);
+    strcat(c, "=");
+    $$ = add_symbol(c);
+  }
+  | TOKLBRACK TOKRBRACK
+  {
+    $$ = add_symbol("[]");
+  }
+  | TOKLBRACK TOKRBRACK TOKEQ
+  {
+    $$ = add_symbol("[]=");
+  }
+  ;
+  
 start_signature:
   {
     signature = new_empty_signature();
@@ -268,30 +300,30 @@ non_empty_signature:
   {}
   | param_list TOKCOMMA TOKSTAR TOKWORD
   {
-    signature_append(signature, star_param($4));
+    signature_append(signature, star_param(add_symbol($4)));
   }
   | param_list TOKCOMMA param_with_default_list TOKCOMMA TOKSTAR TOKWORD
   {
-    signature_append(signature, star_param($6));
+    signature_append(signature, star_param(add_symbol($6)));
   }
   | param_with_default_list TOKCOMMA TOKSTAR TOKWORD
   {
-    signature_append(signature, star_param($4));
+    signature_append(signature, star_param(add_symbol($4)));
   }
   | TOKSTAR TOKWORD
   {
-    signature_append(signature, star_param($2));
+    signature_append(signature, star_param(add_symbol($2)));
   }
   ;
   
 param_list:
   TOKWORD
   {
-    signature_append(signature, param($1));
+    signature_append(signature, param(add_symbol($1)));
   }
   | param_list TOKCOMMA TOKWORD
   {
-    signature_append(signature, param($3));
+    signature_append(signature, param(add_symbol($3)));
   }
   ;
 
@@ -309,22 +341,26 @@ param_with_default_list:
 param_with_default:
   TOKWORD TOKEQ initializer_expression
   {
-    $$ = param_with_default($1, $3);
+    $$ = param_with_default(add_symbol($1), $3);
   }
   ;
 
 initializer_expression:
   symbol
   {
-    $$ = $1;
+    $$ = new_sym_thing($1);
   }
-  | TOKNUMBER
+  | TOKI
   {
-    $$ = new_int($1);
+    $$ = new_i_thing($1);
   }
-  | TOKSTRING
+  | TOKF
   {
-    $$ = new_string($1);
+    $$ = new_f_thing($1);
+  }
+  | TOKS
+  {
+    $$ = new_s_thing($1);
   }
   | TOKNIL
   {
@@ -332,7 +368,7 @@ initializer_expression:
   }
   | TOKLBRACK TOKRBRACK
   {
-    $$ = new_array(0);
+    $$ = new_array_thing(0);
   }
   | TOKLBRACE TOKRBRACE
   {
@@ -376,7 +412,7 @@ comparisonA:
   ;
 
 comparisonB:
-  TOKEQEQ | TOKNEQ
+  TOKEQEQ | TOKNEQ | TOKCOMPARE
   {
     $$ = $1;
   }
@@ -406,13 +442,17 @@ symbol:
 val:
   TOKLPAREN expr TOKRPAREN
   {}
-  | TOKNUMBER
+  | TOKI
   {
-    push_stack(new_int($1));
+    push_stack(new_i_thing($1));
   }
-  | TOKSTRING
+  | TOKF
   {
-    push_stack(new_string($1));
+    push_stack(new_f_thing($1));
+  }
+  | TOKS
+  {
+    push_stack(new_s_thing($1));
   }
   | TOKBLOCKGIVEN
   {
@@ -420,7 +460,7 @@ val:
   }
   | symbol
   {
-    push_stack($1);
+    push_stack(new_sym_thing($1));
   }
   | array
   {}
@@ -432,9 +472,14 @@ val:
   }
   | function_call
   {}
-  | lexpr
+  | pure_lexpr
   {
     dereference();
+  }
+  | array_lexpr
+  {
+    push_stack(new_sym_thing(add_symbol("[]")));
+    do_function_call(1);
   }
   | box_expression
   {}
@@ -552,17 +597,34 @@ exprA2:
   ;
   
 nonifexpr:
-  lexpr TOKEQ expr
+  var_lexpr TOKEQ expr
   {
     assign_var();
   }
-  | lexpr assignop expr
+  | pure_lexpr TOKEQ expr
   {
     assign_var();
   }
-  | lexpr assignboolop expr
+  | pure_lexpr assignop expr
   {
     assign_var();
+  }
+  | pure_lexpr assignboolop expr
+  {
+    assign_var();
+  }
+  |
+  array_lexpr TOKEQ expr
+  {
+    assign_array_var();
+  }
+  | array_lexpr assignop expr
+  {
+    assign_array_var();
+  }
+  | array_lexpr assignboolop expr
+  {
+    assign_array_var();
   }
   | exprA
   {}
@@ -608,7 +670,7 @@ expr:
   ;
 
 function_call:
-  lexpr arg_declaritor function_call1 optional_block
+  pure_lexpr arg_declaritor function_call1 optional_block
   {
     do_function_call($2);
   }
@@ -649,11 +711,11 @@ optional_pipe_param_list:
 array:
   TOKLBRACK TOKRBRACK
   {
-    push_stack(new_array(0));
+    push_stack(new_array_thing(0));
   }
   | TOKLBRACK expr_list TOKRBRACK
   {
-    push_stack(new_array($2));
+    push_stack(new_array_thing($2));
   }
   ;
 
@@ -723,21 +785,33 @@ arg_declaritor:
   }
   ;
 
-lexpr:
-  TOKVAR TOKWORD
+pure_lexpr:
+  TOKWORD
   {
-    push_stack(add_var($2));
-  }
-  | TOKWORD
-  {
-    push_stack(get_reference($1));
+    push_stack(get_reference(add_symbol($1)));
   }
   | val TOKDOT TOKWORD
   {
-    push_stack(get_member_reference($3));
+    push_stack(get_member_reference(add_symbol($3)));
   }
   ;
 
+var_lexpr:
+  TOKVAR TOKWORD
+  {
+    symbol sym = add_symbol($2);
+    add_var(sym);
+    push_stack(get_reference(sym));
+  }
+  ;
+  
+array_lexpr:
+  TOKWORD TOKLBRACK expr TOKRBRACK
+  {
+    push_stack(get_reference(add_symbol($1)));
+  }
+  ;
+  
 box_expression:
   box_begin external_statement_list TOKEND
   {
@@ -758,11 +832,8 @@ box_declaritor:
   ;
   
 box_arg:
+  TOKLPAREN TOKWORD TOKRPAREN
   {
-    start_box("");
-  }
-  | TOKLPAREN TOKWORD TOKRPAREN
-  {
-    start_box($2);
+    start_box(add_symbol($2));
   }
   ;

@@ -1,107 +1,122 @@
 %{
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+
+#include "../acme_types.h"
+
 #include "y.tab.h"
 
-#define return_it(tok) yylval.string=strdup(yytext); return(tok);
+/* Return a constant string, no need to duplicate */
+#define return_s_c(tok, _s) {yylval.s=_s; return(tok);}
+/* Return an acme_integer */
+#define return_i(tok) {yylval.i=atoll(yytext); return(tok);}
+/* Return an acme_float */
+#define return_f(tok) {yylval.f=atof(yytext); return(tok);}
+/* Return a string, need to duplicate */
+#define return_s(tok) {yylval.s=strdup(yytext); return(tok);}
+/* +1 because we don't want to include the initial colon */
+#define return_sym(tok) {yylval.s=strdup(yytext+1); return(tok);}
 
 %}
 %%
                         /* Keywords */
-box                     return_it(TOKBOX);
-end                     return_it(TOKEND);
-def                     return_it(TOKDEF);
-var                     return_it(TOKVAR);
-self                    return_it(TOKSELF);
-if                      return_it(TOKIF);
-else                    return_it(TOKELSE);
-elseif                  return_it(TOKELSEIF);
-empty                   return_it(TOKEMPTY);
-return                  return_it(TOKRETURN);
-try                     return_it(TOKTRY);
-catch                   return_it(TOKCATCH);
-do                      return_it(TOKDO);
-block_given?            return_it(TOKBLOCKGIVEN);
-nil                     return_it(TOKNIL);
-yield                   return_it(TOKYIELD);
+box                     return_s_c(TOKBOX, "box");
+end                     return_s_c(TOKEND, "end");
+def                     return_s_c(TOKDEF, "def");
+var                     return_s_c(TOKVAR, "var");
+self                    return_s_c(TOKSELF, "self");
+if                      return_s_c(TOKIF, "if");
+else                    return_s_c(TOKELSE, "else");
+elseif                  return_s_c(TOKELSEIF, "elseif");
+empty                   return_s_c(TOKEMPTY, "empty");
+return                  return_s_c(TOKRETURN, "return");
+try                     return_s_c(TOKTRY, "try");
+catch                   return_s_c(TOKCATCH, "catch");
+do                      return_s_c(TOKDO, "do");
+block_given?            return_s_c(TOKBLOCKGIVEN, "block_given?");
+nil                     return_s_c(TOKNIL, "nil");
+yield                   return_s_c(TOKYIELD, "yield");
 
                         /* Numbers, strings */
-[0-9]+                  {yylval.number=atoi(yytext); return(TOKNUMBER);}
-\"(\\.|[^\n\\"])*\"     return_it(TOKSTRING);
-\'(\\.|[^\n\\'])*\'     return_it(TOKSTRING);
+[0-9]+                  return_i(TOKI);
+[0-9]+\.[0-9]+          return_f(TOKF);
+\"(\\.|[^\n\\"])*\"     return_s(TOKS);
+\'(\\.|[^\n\\'])*\'     return_s(TOKS);
 
                         /* Token */
-[A-Za-z0-9_]+\?{0,1}    return_it(TOKWORD);
+[A-Za-z0-9_]+\?{0,1}    return_s(TOKWORD);
 
                         /* Symbol */
-:[A-Za-z0-9_\(\)\[\]]+\?{0,1}   return_it(TOKSYMBOL);
+:[A-Za-z0-9_\(\)\[\]]+\?{0,1}   return_sym(TOKSYMBOL);
 
                         /* EOL */
-\n                      return_it(TOKEOL);
-;                       return_it(TOKEOL);
+\n                      return_s_c(TOKEOL, "\n");
+;                       return_s_c(TOKEOL, ";");
 
                         /* Operators */
-\.                      return_it(TOKDOT);
+\.                      return_s_c(TOKDOT, ".");
 
-\+                      return_it(TOKPLUS);
--                       return_it(TOKMINUS);
-!                       return_it(TOKBANG);
-~                       return_it(TOKTILDE);
+\+                      return_s_c(TOKPLUS, "+");
+-                       return_s_c(TOKMINUS, "-");
+!                       return_s_c(TOKBANG, "!");
+~                       return_s_c(TOKTILDE, "~");
 
-\*                      return_it(TOKSTAR);
-\/                      return_it(TOKSLASH);
-%                       return_it(TOKPERCENT);
+\*                      return_s_c(TOKSTAR, "*");
+\/                      return_s_c(TOKSLASH, "/");
+%                       return_s_c(TOKPERCENT, "%");
 
-\<\<                    return_it(TOKSHIFTL);
-\>\>                    return_it(TOKSHIFTR);
+\<\<                    return_s_c(TOKSHIFTL, "<<");
+\>\>                    return_s_c(TOKSHIFTR, ">>");
 
-\>                      return_it(TOKGT);
-\<                      return_it(TOKLT);
-\>=                     return_it(TOKGE);
-\<=                     return_it(TOKLE);
+\>                      return_s_c(TOKGT, ">");
+\<                      return_s_c(TOKLT, "<");
+\>=                     return_s_c(TOKGE, ">=");
+\<=                     return_s_c(TOKLE, "<=");
 
-==                      return_it(TOKEQEQ);
-!=                      return_it(TOKNEQ);
+==                      return_s_c(TOKEQEQ, "==");
+!=                      return_s_c(TOKNEQ, "!=");
+\<=\>                   return_s_c(TOKCOMPARE, "<=>");
 
-\&                      return_it(TOKAMP);
+\&                      return_s_c(TOKAMP, "&");
 
-\^                      return_it(TOKCARAT);
+\^                      return_s_c(TOKCARAT, "^");
 
-\|                      return_it(TOKPIPE);
+\|                      return_s_c(TOKPIPE, "|");
 
-\&\&                    return_it(TOKAND);
+\&\&                    return_s_c(TOKAND, "&&");
 
-\|\|                    return_it(TOKOR);
+\|\|                    return_s_c(TOKOR, "||");
 
-\?                      return_it(TOKQUEST);
-:                       return_it(TOKCOLON);
+\?                      return_s_c(TOKQUEST, "?");
+:                       return_s_c(TOKCOLON, ":");
 
-=                       return_it(TOKEQ);
-\+=                     return_it(TOKPLUSEQ);
--=                      return_it(TOKMINUSEQ);
-\*=                     return_it(TOKSTAREQ);
-\/=                     return_it(TOKSLASHEQ);
-%=                      return_it(TOKPERCENTEQ);
-\&=                     return_it(TOKAMPEQ);
-\^=                     return_it(TOKCARATEQ);
-\|=                     return_it(TOKPIPEEQ);
-&&=                     return_it(TOKANDEQ);
-\|\|=                   return_it(TOKOREQ);
-\<\<=                   return_it(TOKSHIFTLEQ);
-\>\>=                   return_it(TOKSHIFTREQ);
+=                       return_s_c(TOKEQ, "=");
+\+=                     return_s_c(TOKPLUSEQ, "+=");
+-=                      return_s_c(TOKMINUSEQ, "-=");
+\*=                     return_s_c(TOKSTAREQ, "*=");
+\/=                     return_s_c(TOKSLASHEQ, "/=");
+%=                      return_s_c(TOKPERCENTEQ, "%=");
+\&=                     return_s_c(TOKAMPEQ, "&=");
+\^=                     return_s_c(TOKCARATEQ, "^=");
+\|=                     return_s_c(TOKPIPEEQ, "|=");
+&&=                     return_s_c(TOKANDEQ, "&&=");
+\|\|=                   return_s_c(TOKOREQ, "||=");
+\<\<=                   return_s_c(TOKSHIFTLEQ, "<<=");
+\>\>=                   return_s_c(TOKSHIFTREQ, ">>=");
 
-=>                      return_it(TOKHASHROCK);
+=>                      return_s_c(TOKHASHROCK, "=>");
 
-\{                      return_it(TOKLBRACE);
-\}                      return_it(TOKRBRACE);
-\(                      return_it(TOKLPAREN);
-\)                      return_it(TOKRPAREN);
-\[                      return_it(TOKLBRACK);
-\]                      return_it(TOKRBRACK);
+\{                      return_s_c(TOKLBRACE, "{");
+\}                      return_s_c(TOKRBRACE, "}");
+\(                      return_s_c(TOKLPAREN, "(");
+\)                      return_s_c(TOKRPAREN, ")");
+\[                      return_s_c(TOKLBRACK, "[");
+\]                      return_s_c(TOKRBRACK, "]");
 
-,                       return_it(TOKCOMMA);
+,                       return_s_c(TOKCOMMA, ",");
 
-\\\n                    /* Ignore EOL after backslash */;
+\\[ \t]*\n              /* Ignore EOL after backslash */;
 [ \t]+                  /* Ignore whitespace */;
 #.*                     /* Ignore comments */
 
