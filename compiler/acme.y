@@ -28,6 +28,9 @@ static void * new_s_thing(const char *s){printf("new_s_thing(%s)\n", s);}
 static symbol add_symbol(const char *s){printf("add_symbol(%s)\n", s); return 0;}
 
 static void add_var(symbol sym){printf("add_var(*)\n");}
+static void add_public(symbol sym){printf("add_public(*)\n");}
+static void add_private(symbol sym){printf("add_private(*)\n");}
+static void add_const(symbol sym){printf("add_const(*)\n");}
 static void * get_reference(symbol sym){printf("get_reference(*)\n"); return(NULL);}
 static void * get_member_reference(symbol sym){printf("get_member_reference(*)\n"); return(NULL);}
 
@@ -76,6 +79,8 @@ static void *signature = NULL;
 %token <s> TOKEND
 %token <s> TOKDEF
 %token <s> TOKVAR
+%token <s> TOKPUBLIC
+%token <s> TOKPRIVATE
 %token <s> TOKSELF
 %token <s> TOKIF
 %token <s> TOKELSE
@@ -84,6 +89,7 @@ static void *signature = NULL;
 %token <s> TOKRETURN
 %token <s> TOKTRY
 %token <s> TOKCATCH
+%token <s> TOKFINALLY
 %token <s> TOKDO
 %token <s> TOKBLOCKGIVEN
 %token <s> TOKNIL
@@ -96,6 +102,7 @@ static void *signature = NULL;
 
 /* Token */
 %token <s> TOKWORD
+%token <s> TOKCONST
 
 /* Token */
 %token <s> TOKSYMBOL
@@ -207,15 +214,15 @@ internal_statement_list:
   {
     push_stack(get_nil());
   }
-  | internal_statement_list popped_internal_statement
+  | internal_statement_list internal_statement
   ;
 
-popped_internal_statement:
+internal_statement:
   blank_line
-  | popped_statement1 expr_statement
+  | statement1 expr_statement
   ;
   
-popped_statement1:
+statement1:
   {
     pop_stack(); /* Pop the stack before every statement */
   }
@@ -225,11 +232,14 @@ external_statement_list:
   {
     push_stack(get_nil());
   }
-  | external_statement_list popped_external_statement
+  | external_statement_list external_statement
   ;
 
-popped_external_statement:
-  popped_internal_statement | popped_statement1 def_statement
+external_statement:
+  internal_statement |
+  statement1 def_statement |
+  statement1 box_statement |
+  statement1 ppc_statement
   ;
 
   
@@ -241,8 +251,44 @@ expr_statement:
   expr TOKEOL
   ;
 
+ppc_statement:
+  pp_lexpr TOKEQ expr TOKEOL
+  {
+    assign_var();
+  }
+  | pp_lexpr TOKEOL
+  {
+    push_stack(get_nil());
+    assign_var();
+  }
+  | TOKCONST TOKEQ expr TOKEOL
+  {
+    symbol sym = add_symbol($1);
+    add_const(sym);
+    push_stack(get_reference(sym));
+    assign_var();
+  }
+  ;
+
+pp_lexpr:
+  TOKPRIVATE TOKWORD
+  {
+    symbol sym = add_symbol($2);
+    add_private(sym);
+    push_stack(get_reference(sym));
+    assign_var();
+  }
+  | TOKPUBLIC TOKWORD
+  {
+    symbol sym = add_symbol($2);
+    add_public(sym);
+    push_stack(get_reference(sym));
+    assign_var();
+  }
+
+  
 def_statement:
-  def_begin internal_statement_list TOKEND
+  def_begin internal_statement_list TOKEND TOKEOL
   {
     pop_frame();
   }
@@ -481,8 +527,6 @@ val:
     push_stack(new_sym_thing(add_symbol("[]")));
     do_function_call(1);
   }
-  | box_expression
-  {}
   ;
 
 factor:
@@ -812,7 +856,7 @@ array_lexpr:
   }
   ;
   
-box_expression:
+box_statement:
   box_begin external_statement_list TOKEND
   {
     end_box();
@@ -821,19 +865,9 @@ box_expression:
   ;
 
 box_begin:
-  box_declaritor box_arg TOKEOL
-  ;
-
-box_declaritor:
-  TOKBOX
+  TOKBOX TOKCONST TOKEOL
   {
     push_frame();
-  }
-  ;
-  
-box_arg:
-  TOKLPAREN TOKWORD TOKRPAREN
-  {
     start_box(add_symbol($2));
   }
   ;

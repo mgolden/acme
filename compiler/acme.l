@@ -25,6 +25,8 @@ box                     return_s_c(TOKBOX, "box");
 end                     return_s_c(TOKEND, "end");
 def                     return_s_c(TOKDEF, "def");
 var                     return_s_c(TOKVAR, "var");
+public                  return_s_c(TOKPUBLIC, "public");
+private                 return_s_c(TOKPRIVATE, "private");
 self                    return_s_c(TOKSELF, "self");
 if                      return_s_c(TOKIF, "if");
 else                    return_s_c(TOKELSE, "else");
@@ -33,6 +35,7 @@ empty                   return_s_c(TOKEMPTY, "empty");
 return                  return_s_c(TOKRETURN, "return");
 try                     return_s_c(TOKTRY, "try");
 catch                   return_s_c(TOKCATCH, "catch");
+finally                 return_s_c(TOKFINALLY, "finally");
 do                      return_s_c(TOKDO, "do");
 block_given?            return_s_c(TOKBLOCKGIVEN, "block_given?");
 nil                     return_s_c(TOKNIL, "nil");
@@ -45,10 +48,11 @@ yield                   return_s_c(TOKYIELD, "yield");
 \'(\\.|[^\n\\'])*\'     return_s(TOKS);
 
                         /* Token */
-[A-Za-z0-9_]+\?{0,1}    return_s(TOKWORD);
+[a-z][A-Za-z0-9_]*\?{0,1}    return_s(TOKWORD);
+[A-Z][A-Za-z0-9_]*\?{0,1}    return_s(TOKCONST);
 
                         /* Symbol */
-:[A-Za-z0-9_\(\)\[\]]+\?{0,1}   return_sym(TOKSYMBOL);
+:[A-Za-z0-9_\[\]]+\?{0,1}    return_sym(TOKSYMBOL);
 
                         /* EOL */
 \n                      return_s_c(TOKEOL, "\n");
