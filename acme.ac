@@ -27,6 +27,10 @@ box Label
       11
     x[5] = 7
     l = g.r.x()
+    r = RRR
+  end
+  def a=(z)
+    r = 10
   end
   f(10) do |r|
     var xx = 10

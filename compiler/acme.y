@@ -185,6 +185,7 @@ static void *signature = NULL;
 %type <ptr> param_with_default
 %type <ptr> initializer_expression
 %type <sym> symbol
+%type <sym> word
 %type <sym> function_name
 
 %type <s> unary
@@ -251,6 +252,13 @@ expr_statement:
   expr TOKEOL
   ;
 
+word:
+  TOKWORD
+  {
+    $$ = add_symbol($1);
+  }
+  ;
+
 ppc_statement:
   pp_lexpr TOKEQ expr TOKEOL
   {
@@ -271,19 +279,15 @@ ppc_statement:
   ;
 
 pp_lexpr:
-  TOKPRIVATE TOKWORD
+  TOKPRIVATE word
   {
-    symbol sym = add_symbol($2);
-    add_private(sym);
-    push_stack(get_reference(sym));
-    assign_var();
+    add_private($2);
+    push_stack(get_reference($2));
   }
-  | TOKPUBLIC TOKWORD
+  | TOKPUBLIC word
   {
-    symbol sym = add_symbol($2);
-    add_public(sym);
-    push_stack(get_reference(sym));
-    assign_var();
+    add_public($2);
+    push_stack(get_reference($2));
   }
 
   
@@ -303,9 +307,9 @@ def_begin:
   ;
 
 function_name:
-  TOKWORD
+  word
   {
-    $$ = add_symbol($1);
+    $$ = $1;
   }
   | TOKWORD TOKEQ
   {
@@ -324,7 +328,7 @@ function_name:
     $$ = add_symbol("[]=");
   }
   ;
-  
+
 start_signature:
   {
     signature = new_empty_signature();
@@ -344,32 +348,32 @@ non_empty_signature:
   {}
   | param_with_default_list
   {}
-  | param_list TOKCOMMA TOKSTAR TOKWORD
+  | param_list TOKCOMMA TOKSTAR word
   {
-    signature_append(signature, star_param(add_symbol($4)));
+    signature_append(signature, star_param($4));
   }
-  | param_list TOKCOMMA param_with_default_list TOKCOMMA TOKSTAR TOKWORD
+  | param_list TOKCOMMA param_with_default_list TOKCOMMA TOKSTAR word
   {
-    signature_append(signature, star_param(add_symbol($6)));
+    signature_append(signature, star_param($6));
   }
-  | param_with_default_list TOKCOMMA TOKSTAR TOKWORD
+  | param_with_default_list TOKCOMMA TOKSTAR word
   {
-    signature_append(signature, star_param(add_symbol($4)));
+    signature_append(signature, star_param($4));
   }
-  | TOKSTAR TOKWORD
+  | TOKSTAR word
   {
-    signature_append(signature, star_param(add_symbol($2)));
+    signature_append(signature, star_param($2));
   }
   ;
   
 param_list:
-  TOKWORD
+  word
   {
-    signature_append(signature, param(add_symbol($1)));
+    signature_append(signature, param($1));
   }
-  | param_list TOKCOMMA TOKWORD
+  | param_list TOKCOMMA word
   {
-    signature_append(signature, param(add_symbol($3)));
+    signature_append(signature, param($3));
   }
   ;
 
@@ -385,9 +389,9 @@ param_with_default_list:
   ;
 
 param_with_default:
-  TOKWORD TOKEQ initializer_expression
+  word TOKEQ initializer_expression
   {
-    $$ = param_with_default(add_symbol($1), $3);
+    $$ = param_with_default($1, $3);
   }
   ;
 
@@ -526,6 +530,11 @@ val:
   {
     push_stack(new_sym_thing(add_symbol("[]")));
     do_function_call(1);
+  }
+  | TOKCONST
+  {
+    new_sym_thing(add_symbol($1));
+    dereference();
   }
   ;
 
@@ -830,29 +839,28 @@ arg_declaritor:
   ;
 
 pure_lexpr:
-  TOKWORD
+  word
   {
-    push_stack(get_reference(add_symbol($1)));
+    push_stack(get_reference($1));
   }
-  | val TOKDOT TOKWORD
+  | val TOKDOT word
   {
-    push_stack(get_member_reference(add_symbol($3)));
+    push_stack(get_member_reference($3));
   }
   ;
 
 var_lexpr:
-  TOKVAR TOKWORD
+  TOKVAR word
   {
-    symbol sym = add_symbol($2);
-    add_var(sym);
-    push_stack(get_reference(sym));
+    add_var($2);
+    push_stack(get_reference($2));
   }
   ;
   
 array_lexpr:
-  TOKWORD TOKLBRACK expr TOKRBRACK
+  word TOKLBRACK expr TOKRBRACK
   {
-    push_stack(get_reference(add_symbol($1)));
+    push_stack(get_reference($1));
   }
   ;
   
