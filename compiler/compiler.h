@@ -1,17 +1,11 @@
 #ifndef COMPILER_H
 #define COMPILER_H
-#include <stdio.h>
-#include <string.h>
 
-#include "../acme_types.h"
+#include "../acme.h"
 
-typedef code_hunk struct _code_hunk;
+#include "code_hunk.h"
 
-struct _code_hunk {
-  code_hunk *prev;
-  code_hunk *next;
-  char *hunk;
-};
+void dump_code(code_hunk *c, char *filename);
 
 static void * new_empty_signature(){printf("new_empty_signature\n"); return(NULL);}
 static void * param(symbol sym){printf("param(*)\n"); return(NULL);}
@@ -32,7 +26,7 @@ static void * new_i_thing(acme_int n){printf("new_i_thing(%d)\n", (int) n);}
 static void * new_f_thing(acme_float f){printf("new_f_thing(%lf)\n", (double) f);}
 static void * new_sym_thing(symbol sym){printf("new_sym_thing(*)\n");}
 static void * new_array_thing(int n){printf("new_array_thing(%d)\n", n);}
-static void * new_hash(int n){printf("new_hash(%d)\n", n);}
+static void * new_hash_thing(int n){printf("new_hash(%d)\n", n);}
 static void * get_nil(){printf("get_nil\n"); return(NULL);}
 static void * block_given(){printf("block_given\n"); return(NULL);}
 

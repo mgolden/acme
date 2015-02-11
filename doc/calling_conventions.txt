@@ -1,0 +1,26 @@
+After call and entry to block
+
+        <- SP
+l4
+l3
+l2
+l1
+OLD FP  <- FP
+self
+p1
+p2
+p3
+.
+.
+.
+
+Just prior to call:
+
+function name symbol <- SP
+self
+p1
+p2
+p3
+.
+.
+.

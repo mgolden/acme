@@ -126,29 +126,79 @@ static void *signature = NULL;
   acme_float f;
   char *s;
   symbol sym;
-  int number;
-  void *ptr;
+  code_hunk *code_hunk;
 }
 
-%type <ptr> param_with_default
-%type <ptr> initializer_expression
 %type <sym> symbol
 %type <sym> word
 %type <sym> function_name
 
-%type <s> unary
-%type <s> add
-%type <s> mul
-%type <s> shift
-%type <s> comparisonA
-%type <s> comparisonB
-%type <s> assignop
-%type <s> assignboolop
+%type <sym> unary
+%type <sym> add
+%type <sym> mul
+%type <sym> shift
+%type <sym> comparisonA
+%type <sym> comparisonB
+%type <sym> assignop
+%type <sym> assignboolop
 
-%type <number> expr_list
-%type <number> pure_expr_list
-%type <number> hash_list
-%type <number> arg_declaritor
+%type <code_hunk> internal_statement_list
+%type <code_hunk> internal_statement
+%type <code_hunk> statement1
+%type <code_hunk> external_statement_list
+%type <code_hunk> external_statement
+%type <code_hunk> blank_line
+%type <code_hunk> expr_statement
+%type <code_hunk> ppc_statement
+%type <code_hunk> pp_lexpr
+%type <code_hunk> def_statement
+%type <code_hunk> def_begin
+%type <code_hunk> start_signature
+%type <code_hunk> signature
+%type <code_hunk> non_empty_signature
+%type <code_hunk> param_list
+%type <code_hunk> param_with_default_list
+%type <code_hunk> param_with_default
+%type <code_hunk> initializer_expression
+%type <code_hunk> val
+%type <code_hunk> factor
+%type <code_hunk> term
+%type <code_hunk> exprI
+%type <code_hunk> exprH
+%type <code_hunk> exprG
+%type <code_hunk> exprF
+%type <code_hunk> exprE
+%type <code_hunk> exprD
+%type <code_hunk> exprC
+%type <code_hunk> exprB
+%type <code_hunk> exprA
+%type <code_hunk> exprA1
+%type <code_hunk> exprA2
+%type <code_hunk> nonifexpr
+%type <code_hunk> ifexpr
+%type <code_hunk> ifexpr1
+%type <code_hunk> elseif_clause
+%type <code_hunk> elseif_clause1
+%type <code_hunk> else_clause
+%type <code_hunk> else_clause1
+%type <code_hunk> expr
+%type <code_hunk> function_call
+%type <code_hunk> function_call1
+%type <code_hunk> optional_block
+%type <code_hunk> optional_block1
+%type <code_hunk> optional_pipe_param_list
+%type <code_hunk> array
+%type <code_hunk> expr_list
+%type <code_hunk> pure_expr_list
+%type <code_hunk> hash
+%type <code_hunk> hash_list
+%type <code_hunk> hash_element
+%type <code_hunk> arg_declaritor
+%type <code_hunk> pure_lexpr
+%type <code_hunk> var_lexpr
+%type <code_hunk> array_lexpr
+%type <code_hunk> box_statement
+%type <code_hunk> box_begin
 
 %start start
 
@@ -156,14 +206,18 @@ static void *signature = NULL;
 
 start:
   external_statement_list TOKEOF
-  {}
+  {
+    dump_code($1, "test.c");
+  }
   ;
 
 internal_statement_list:
   {
-    push_stack(get_nil());
+    $$ = append_code_hunk(NULL, get_nil());
   }
   | internal_statement_list internal_statement
+  {
+    $$ = CCH($1, $2);
   ;
 
 internal_statement:
@@ -179,7 +233,7 @@ statement1:
   
 external_statement_list:
   {
-    push_stack(get_nil());
+    get_nil();
   }
   | external_statement_list external_statement
   ;
@@ -214,14 +268,14 @@ ppc_statement:
   }
   | pp_lexpr TOKEOL
   {
-    push_stack(get_nil());
+    get_nil();
     assign_var();
   }
   | TOKCONST TOKEQ expr TOKEOL
   {
     symbol sym = add_symbol($1);
     add_const(sym);
-    push_stack(get_reference(sym));
+    get_reference(sym);
     assign_var();
   }
   ;
@@ -230,12 +284,12 @@ pp_lexpr:
   TOKPRIVATE word
   {
     add_private($2);
-    push_stack(get_reference($2));
+    get_reference($2);
   }
   | TOKPUBLIC word
   {
     add_public($2);
-    push_stack(get_reference($2));
+    get_reference($2);
   }
 
   
@@ -274,6 +328,26 @@ function_name:
   | TOKLBRACK TOKRBRACK TOKEQ
   {
     $$ = add_symbol("[]=");
+  }
+  | add
+  {
+    $$ = $1;
+  }
+  | mul
+  {
+    $$ = $1;
+  }
+  | shift
+  {
+    $$ = $1;
+  }
+  | comparisonA
+  {
+    $$ = $1;
+  }
+  | comparisonB
+  {
+    $$ = $1;
   }
   ;
 
@@ -377,56 +451,56 @@ initializer_expression:
 unary:
   TOKPLUS | TOKMINUS | TOKBANG | TOKTILDE  
   {
-    $$ = $1;
+    $$ = add_symbol($1);
   }
   ;
 
 add:
   TOKPLUS | TOKMINUS
   {
-    $$ = $1;
+    $$ = add_symbol($1);
   }
   ;
 
 mul:
   TOKSTAR | TOKSLASH | TOKPERCENT
   {
-    $$ = $1;
+    $$ = add_symbol($1);
   }
   ;
   
 shift:
   TOKSHIFTL | TOKSHIFTR
   {
-    $$ = $1;
+    $$ = add_symbol($1);
   }
   ;
 
 comparisonA:
   TOKGT | TOKLT | TOKGE | TOKLE
   {
-    $$ = $1;
+    $$ = add_symbol($1);
   }
   ;
 
 comparisonB:
   TOKEQEQ | TOKNEQ | TOKCOMPARE
   {
-    $$ = $1;
+    $$ = add_symbol($1);
   }
   ;
 
 assignop:
   TOKPLUSEQ | TOKMINUSEQ | TOKSTAREQ | TOKSLASHEQ | TOKPERCENTEQ | TOKAMPEQ | TOKCARATEQ | TOKPIPEEQ | TOKSHIFTLEQ | TOKSHIFTREQ
   {
-    $$ = $1;
+    $$ = add_symbol($1);
   }
   ;
 
 assignboolop:
   TOKANDEQ | TOKOREQ
   {
-  $$ = $1;
+    $$ = add_symbol($1);
   }
   ;
 
@@ -442,23 +516,23 @@ val:
   {}
   | TOKI
   {
-    push_stack(new_i_thing($1));
+    new_i_thing($1);
   }
   | TOKF
   {
-    push_stack(new_f_thing($1));
+    new_f_thing($1);
   }
   | TOKS
   {
-    push_stack(new_s_thing($1));
+    new_s_thing($1);
   }
   | TOKBLOCKGIVEN
   {
-    push_stack(block_given());
+    block_given();
   }
   | symbol
   {
-    push_stack(new_sym_thing($1));
+    new_sym_thing($1);
   }
   | array
   {}
@@ -466,7 +540,8 @@ val:
   {}
   | unary val
   {
-    unary_call($1);
+    new_sym_thing($1);
+    call_send($1);
   }
   | function_call
   {}
@@ -476,8 +551,8 @@ val:
   }
   | array_lexpr
   {
-    push_stack(new_sym_thing(add_symbol("[]")));
-    do_function_call(1);
+    new_sym_thing(add_symbol("[]"));
+    call_send(1);
   }
   | TOKCONST
   {
@@ -491,7 +566,8 @@ factor:
   {}
   | factor mul val
   {
-    operator_call($2);
+    new_sym_thing($2);
+    call_send(2);
   }
   ;
 
@@ -500,7 +576,7 @@ term:
   {}
   | term add factor
   {
-    operator_call($2);
+    call_send($2);
   }
   ;
 
@@ -509,7 +585,7 @@ exprI:
   {}
   | exprI shift term
   {
-    operator_call($2);
+    call_send($2);
   }
   ;
 
@@ -518,7 +594,7 @@ exprH:
   {}
   | exprH comparisonA exprI
   {
-    operator_call($2);
+    call_send($2);
   }
   ;
   
@@ -527,7 +603,7 @@ exprG:
   {}
   | exprG comparisonB exprH
   {
-    operator_call($2);
+    call_send($2);
   }
   ;
 
@@ -536,7 +612,7 @@ exprF:
   {}
   | exprF TOKAMP exprG
   {
-    operator_call($2);
+    call_send($2);
   }
   ;
 
@@ -545,7 +621,7 @@ exprE:
   {}
   | exprE TOKCARAT exprF
   {
-    operator_call($2);
+    call_send($2);
   }
   ;
   
@@ -554,7 +630,7 @@ exprD:
   {}
   | exprD TOKPIPE exprE
   {
-    operator_call($2);
+    call_send($2);
   }
   ;
   
@@ -563,7 +639,7 @@ exprC:
   {}
   | exprC TOKAND exprD
   {
-    operator_call($2);
+    call_send($2);
   }
   ;
 
@@ -572,7 +648,7 @@ exprB:
   {}
   | exprB TOKOR exprC
   {
-    operator_call($2);
+    call_send($2);
   }
   ;
 
@@ -671,9 +747,9 @@ expr:
   ;
 
 function_call:
-  pure_lexpr arg_declaritor function_call1 optional_block
+  pure_lexpr argument_list function_call1 optional_block
   {
-    do_function_call($2);
+    call_send($2);
   }
   ;
 
@@ -685,11 +761,11 @@ function_call1:
 
 optional_block:
   {
-    push_stack(get_nil());
+    get_nil();
   }
   | TOKDO optional_pipe_param_list TOKEOL optional_block1 internal_statement_list TOKEND
   {
-    push_stack(pop_compile());
+    pop_compile();
   }
   ;
 
@@ -712,11 +788,11 @@ optional_pipe_param_list:
 array:
   TOKLBRACK TOKRBRACK
   {
-    push_stack(new_array_thing(0));
+    new_array_thing(0);
   }
   | TOKLBRACK expr_list TOKRBRACK
   {
-    push_stack(new_array_thing($2));
+    new_array_thing($2);
   }
   ;
 
@@ -727,12 +803,12 @@ expr_list:
   }
   | pure_expr_list TOKCOMMA hash_list
   {
-    push_stack(new_hash($3));
+    new_hash_thing($3);
     $$ = $1 + 1;
   }
   | hash_list
   {
-    push_stack(new_hash($1));
+    new_hash_thing($1);
     $$ = 1;
   }
   ;
@@ -752,11 +828,11 @@ pure_expr_list:
 hash:
   TOKLBRACE TOKRBRACE
   {
-    push_stack(new_hash(0));
+    new_hash_thing(0);
   }
   | TOKLBRACE hash_list TOKRBRACE
   {
-    push_stack(new_hash($2));
+    new_hash_thing($2);
   }
   ;
 
@@ -775,7 +851,7 @@ hash_element:
   expr TOKHASHROCK expr
   ;
 
-arg_declaritor:
+argument_list:
   TOKLPAREN TOKRPAREN
   {
     $$ = 0;
@@ -789,11 +865,11 @@ arg_declaritor:
 pure_lexpr:
   word
   {
-    push_stack(get_reference($1));
+    get_reference($1);
   }
   | val TOKDOT word
   {
-    push_stack(get_member_reference($3));
+    get_member_reference($3);
   }
   ;
 
@@ -801,14 +877,14 @@ var_lexpr:
   TOKVAR word
   {
     add_var($2);
-    push_stack(get_reference($2));
+    get_reference($2);
   }
   ;
   
 array_lexpr:
   word TOKLBRACK expr TOKRBRACK
   {
-    push_stack(get_reference($1));
+    get_reference($1);
   }
   ;
   
