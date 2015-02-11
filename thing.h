@@ -7,15 +7,16 @@ enum thing_type {
   F_thing_type,
   S_thing_type,
   Sym_thing_type,
-  Ref_thing_type
+  array_thing_type,
+  hash_thing_type
 };
 
 struct _thing {
   int_16t thing_type;
   union {
-    /* Normal case, a hash table for the vars contained in the thing */
+    /* Normal case, a hash table for the public and private properties contained in the thing */
     /* Note - this must always be initialized to NULL */
-    hash_entry *hash_table;
+    thing_entry *things_hash;
     /* All of the below are known as "atomic" things */
     /* They cannot have an eigenclass */
     /* an integer */
@@ -26,9 +27,21 @@ struct _thing {
     char *s;
     /* a symbol */
     symbol sym;
-    /* used only internally, a non-deferenced pointer to something */
-    thing *t;
+    /* an array */
+    thing **a;
+    /* a hash */
+    hash *h;
   } u;
-  thing * eigenbox;
-  list * boxlist;
+  box * eigenbox;
+  thing_list * boxlist;
 };
+
+struct _box {
+  symbol sym;
+  function_entry *functions_hash;
+  thing_entry *constants_hash;
+  symbol_entry *symbols_hash;
+};
+
+
+  

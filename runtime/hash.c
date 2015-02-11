@@ -2,14 +2,14 @@
 
 /* This adds a (sym, pointer to thing) pair into a symbol table. */
 /* If an entry is already there, move the pointer to point at the new thing */
-void create_symbol_table_entry(symbol_table_entry *symbol_table, symbol sym, thing *t) {
-  symbol_table_entry *ste;
+void create_thing_entry(thing_entry *thing_table, symbol sym, thing *t) {
+  thing_entry *te;
 
-  HASH_FIND_INT(symbol_table, &sym, ste);  /* id already in the hash? */
-  if(ste==NULL) {
-    ste = (symbol_table_entry *)GC_malloc(sizeof(symbol_table_entry));
-    ste->sym = sym;
-    HASH_ADD_INT(symbol_table, sym, ste);  /* sym is the name of key field */
+  HASH_FIND_INT(thing_table, &sym, te);  /* id already in the hash? */
+  if(te==NULL) {
+    te = (thing_entry *)GC_malloc(sizeof(thing_entry));
+    st->sym = sym;
+    HASH_ADD_INT(thing_table, sym, st);  /* sym is the name of key field */
   }
-  ste->t = t;
+  te->t = t;
 }
