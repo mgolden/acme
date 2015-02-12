@@ -5,7 +5,7 @@
 
 #include "code_hunk.h"
 
-void dump_code(code_hunk *c, char *filename);
+void dump_code(code_hunk *c, FILE *f);
 
 static void * new_empty_signature(){printf("new_empty_signature\n"); return(NULL);}
 static void * param(symbol sym){printf("param(*)\n"); return(NULL);}
@@ -30,8 +30,6 @@ static void * new_hash_thing(int n){printf("new_hash(%d)\n", n);}
 static void * get_nil(){printf("get_nil\n"); return(NULL);}
 static void * block_given(){printf("block_given\n"); return(NULL);}
 
-static void operator_call(const char *s){printf("operator_call(%s)\n", s);}
-static void unary_call(const char *s){printf("unary_call(%s)\n", s);}
 static void start_box(symbol sym){printf("start_box(*)\n");}
 
 static void push_stack(const void *p){printf("push_stack(*)\n");}

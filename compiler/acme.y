@@ -11,9 +11,28 @@ int yywrap()
   return 1;
 }
 
-main()
+static char *input_file_name;
+static FILE *output_file;
+
+int main(int argc, char **argv)
 {
+  if(argc != 1) usage();
+  char *input_file_name = argv[1];
+  char *output_file_name = strdup(input_file_name);
+  char *p = strrchr(file_name, ".");
+  if(strcmp(p,".ac")!=0) usage();
+  *p++ = 'c';
+  *p = '\0';
+  output_file = fopen(output_file_name, "w");
+  GC_free(output_file_name);
+  yyin = fopen(input_file_name, "r");
   yyparse();
+  fclose(yyin);
+}
+
+static void usage(void) {
+  fprintf(stderr, "usage: acme source.ac\n");
+  exit(1);
 }
 
 
@@ -207,76 +226,79 @@ static void *signature = NULL;
 start:
   external_statement_list TOKEOF
   {
-    dump_code($1, "test.c");
+    dump_code($1, output_file);
   }
   ;
 
 internal_statement_list:
   {
-    $$ = append_code_hunk(NULL, get_nil());
+    $$ = ECH(get_nil());
   }
   | internal_statement_list internal_statement
   {
     $$ = CCH($1, $2);
+  }
   ;
 
 internal_statement:
   blank_line
+  { $$ = $1 }
   | statement1 expr_statement
+  { $$ = CCH($1, $2); }
   ;
-  
+
+/* Pop the stack before every statement */
 statement1:
-  {
-    pop_stack(); /* Pop the stack before every statement */
-  }
+  { ECH(pop_stack(1)); }
   ;
   
 external_statement_list:
-  {
-    get_nil();
-  }
+  { ECH(get_nil()); }
   | external_statement_list external_statement
+  { $$ = CCH($1, $2); }
   ;
 
 external_statement:
-  internal_statement |
-  statement1 def_statement |
-  statement1 box_statement |
-  statement1 ppc_statement
+  internal_statement
+  { $$ = $1; }
+  | statement1 def_statement
+  { $$ = CCH($1, $2); }
+  | statement1 box_statement
+  { $$ = CCH($1, $2); }
+  | statement1 ppc_statement
+  { $$ = CCH($1, $2); }
   ;
 
   
 blank_line:
   TOKEOL
+  { $$ = NULL; }
   ;
 
 expr_statement:
   expr TOKEOL
+  { $$ = $1; }
   ;
 
 word:
   TOKWORD
-  {
-    $$ = add_symbol($1);
-  }
+  { $$ = add_symbol($1); }
   ;
 
 ppc_statement:
   pp_lexpr TOKEQ expr TOKEOL
   {
-    assign_var();
+    $$ = ECH(assign_var());
   }
   | pp_lexpr TOKEOL
   {
-    get_nil();
-    assign_var();
+    $$ = CCH(ECH(get_nil(), ECH(assign_var()));
   }
   | TOKCONST TOKEQ expr TOKEOL
   {
     symbol sym = add_symbol($1);
     add_const(sym);
-    get_reference(sym);
-    assign_var();
+    $$ = CCH(ECH(get_reference(sym), assign_var()));
   }
   ;
 
@@ -284,14 +306,14 @@ pp_lexpr:
   TOKPRIVATE word
   {
     add_private($2);
-    get_reference($2);
+    $$ = ECH(get_reference($2));
   }
   | TOKPUBLIC word
   {
     add_public($2);
-    get_reference($2);
+    $$ = ECH(get_reference($2));
   }
-
+  ;
   
 def_statement:
   def_begin internal_statement_list TOKEND TOKEOL
