@@ -6,8 +6,9 @@ typedef struct _code_hunk {
   code_hunk *prev;
   code_hunk *next;
   char *hunk;
-  int commas; /* comma delimited expressions */
-  int vars;   /* local vars declared */
+  int comexprs; /* comma delimited expressions */
+  int locvars;  /* local vars declared */
+  int offset;   /* Holds the fp offset when a local var lexpr, hunk is NULL */
 } code_hunk;
 
 code_hunk *append_code_hunk(code_hunk *list, char *code);

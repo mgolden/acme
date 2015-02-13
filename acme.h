@@ -13,10 +13,6 @@
 /* the particulars of the hash library *
 #include "acme_hash.h"
 
-/* Various typedefs for structs that may be circular */
-typedef struct _thing thing;
-typedef struct _thing_entry thing_entry;
-
 /* Numeric types */
 typedef int64_t acme_int;
 typedef double acme_float;
@@ -24,16 +20,63 @@ typedef double acme_float;
 /* A symbol is a 64 bit integer */
 typedef int64_t symbol;
 
-/* A function, operates on the stack, takes no arguments */
+/* A function, operates on the stack, takes the sp as an argument */
+typedef int (*acme_function)(int sp);
 
-typedef int (*acme_function)(void);
+/* typedefs for structs that are circular */
+typedef struct _thing thing;
+typedef struct _thing_entry thing_entry;
+typedef struct _box_list_entry box_list_entry;
+typedef struct _array array;
+typedef struct _hash_entry hash_entry;
 
-struct _thing_entry {
-  /* key */
+ACME_HASH(thing_entry, symbol sym, thing *t);
+ACME_HASH(hash_entry, thing *t, thing *t);
+
+enum thing_type {
+  Normal_thing_type = 0,
+  I_thing_type,
+  F_thing_type,
+  S_thing_type,
+  Sym_thing_type,
+  array_thing_type,
+  hash_thing_type
+};
+
+struct _thing {
+  int_16t thing_type;
+  union {
+    /* Normal case, a hash table for the public and private properties contained in the thing */
+    /* Note - this must always be initialized to NULL */
+    thing_entry *things_hash;
+    /* All of the below are known as "atomic" things */
+    /* They cannot have an eigenclass */
+    /* an integer */
+    acme_int i;
+    /* a float */
+    acme_float d;
+    /* a string */
+    char *s;
+    /* a symbol */
+    symbol sym;
+    /* an array */
+    array *a;
+    /* a hash */
+    hash_entry *h;
+  } u;
+  box_list_entry * box_list;
+};
+
+typedef struct _box {
   symbol sym;
-  /* The data held */
-  thing *t;
-  /* Internal, used only by uthash; makes this structure hashable */
+  function_entry *functions_hash;
+  thing_entry *constants_hash;
+  symbol_entry *symbols_hash;
+} box;
 
+struct _box_list {
+  box_list *next;
+  box *b;
+}
 
 #endif

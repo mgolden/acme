@@ -40,6 +40,7 @@ do                      return_s_c(TOKDO, "do");
 block_given?            return_s_c(TOKBLOCKGIVEN, "block_given?");
 nil                     return_s_c(TOKNIL, "nil");
 yield                   return_s_c(TOKYIELD, "yield");
+begin                   return_s_c(TOKBEGIN, "begin");
 
                         /* Numbers, strings */
 [0-9]+                  return_i(TOKI);
@@ -119,6 +120,7 @@ yield                   return_s_c(TOKYIELD, "yield");
 \]                      return_s_c(TOKRBRACK, "]");
 
 ,                       return_s_c(TOKCOMMA, ",");
+\$                      return_s_c(TOKBUCK, "$");
 
 \\[ \t]*\n              /* Ignore EOL after backslash */;
 [ \t]+                  /* Ignore whitespace */;
