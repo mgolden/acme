@@ -121,6 +121,7 @@ begin                   return_s_c(TOKBEGIN, "begin");
 
 ,                       return_s_c(TOKCOMMA, ",");
 \$                      return_s_c(TOKBUCK, "$");
+\@                      return_s_c(TOKAT, "@");
 
 \\[ \t]*\n              /* Ignore EOL after backslash */;
 [ \t]+                  /* Ignore whitespace */;

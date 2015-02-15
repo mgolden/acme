@@ -1,3 +1,5 @@
+For the case of a function with signature f(a1, a2, a3=2, a4=3, *args)
+
 After call and entry to block
 
         <- SP
@@ -5,22 +7,32 @@ l4
 l3
 l2
 l1
+args (array)
+a4 (copy or default)
+a3 (copy or default)
 OLD FP  <- FP
 self
-p1
-p2
-p3
+block (or nil)
+arg1
+arg2
+arg3 (Not used in function)
+arg4 (Not used in function)
+arg5 (Not used in function)
 .
 .
 .
 
 Just prior to call:
 
+n_args (5 in this case)
 function name symbol <- SP
 self
-p1
-p2
-p3
+block (or nil)
+arg1
+arg2
+arg3
+arg4
+arg5
 .
 .
 .

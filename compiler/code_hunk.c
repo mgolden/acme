@@ -1,68 +1,65 @@
 #include "compiler.h"
 
-/* Insert a new code block in the (circular) list, */
-/* between the tail and the head */
-static code_hunk *insert_code_hunk(code_hunk *list, char *code) {
-  code_hunk *new = GC_malloc(sizeof code_hunk);
-  new->code = code;
-  new->extra = 0;
-  if(list == NULL) {
-    new->prev = new->next = new;
-  }
-  else {
-    code_hunk *last = list->prev;
-    last->next = new;
-    list->prev = new;
-    new->prev = last;
-    new->next = list;
-  }
+/* Note: throughout, we are using GC_free, which may not be necessary
+ * but should make things easier for GC */
+
+code_hunk *make_code_hunk(char *code, int comexprs, int locvars, int offset) {
+  code_hunk *new = (code_hunk *) GC_malloc(sizeof code_hunk);
+  new->comexprs = comexprs;
+  new->locvars = locvars;
+  new->offset = offset;
+  code_list_entry *new_s = (code_list_entry *) GC_malloc(sizeof code_list_entry);
+  new_s->prev = new_s;
+  new_s->next = new_s;
+  new_s->code = code;
   return new;
 }
 
-/* The only difference between appending and prepending */
-/* Is what becomes the new head */
-/* Here, the old head is the head still */
-code_hunk *append_code_hunk(code_hunk *list, char *code) {
-  insert_code_hunk(list, code);
-  return list;
-}
 
-/* Here the new head becomes the head */
-code_hunk *prepend_code_hunk(code_hunk *list, char *code) {
-  return insert_code_hunk(list, code);
-}
-
-/* Concatenate lists */
-code_hunk *concatenate_code_hunk_lists(code_hunk *list1, code_hunk *list2) {
-  if(code_hunk1 == NULL) {
-    if(code_hunk1 == NULL) {
+/* Append the second code hunk onto the first */
+code_hunk *concatenate_code_hunks(code_hunk *ch1, code_hunk *ch2) {
+  if(ch1 == NULL) {
+    if(ch2 == NULL) {
       return NULL;
     }
-    return code_hunk2;
+    return ch2;
   }
-  if(code_hunk2 == NULL) {
-    return code_hunk1;
+  if(ch2 == NULL) {
+    return ch1;
   }
-  list1_end = list1->prev;
-  list2_end = list2->prev;
-  list1_end->next = list2;
-  list2->prev = list1;
-  list2_end->next = list1;
-  list1->prev = list2;
-  return list1;
+  
+  list1_end = ch1->list->prev;
+  list2_end = ch2->list->prev;
+  list1_end->next = ch2->list;
+  ch2->list->prev = list1_end;
+  list2_end->next = ch1->list;
+  ch1->list->prev = list2_end;
+
+  ch1->comvars += ch2->comvars;
+  ch1->locvars += ch2->locvars;
+  if(ch1->offset != 0 || ch2->offset != 0) {
+    fprintf(stderr, "FATAL ERROR: concatenating code_hunks with offset\n");
+    exit(1);
+  }
+
+  ch2->list = NULL;
+  GC_free(ch2);
+  
+  return ch1;
 }
 
-/* This may not be necessary, but should make things easier */
-/* for GC */
-/* NOTE: Next insert a constant string into the code hunk chain */
-void free_code_hunk(code_hunk *list) {
-  if(list == NULL) {return;}
+/* NOTE: Never insert a constant string into the code hunk chain */
+void free_code_hunk(code_hunk *ch) {
+  if(ch == NULL) {return;}
   /* Break the circle */
+  code_list *list = ch->list;
   list->prev->next = NULL;
   while(list != NULL) {
-    code_hunk *old = list;
+    code_list *next = list->next;
+    list->next = list->prev = NULL;
     GC_free(list->code);
     GC_free(list);
-    list = old;
+    list = next;
   }
+  GC_free(ch);
 }

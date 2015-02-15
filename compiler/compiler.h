@@ -5,7 +5,7 @@
 
 #include "code_hunk.h"
 
-void dump_code(code_hunk *c, FILE *f);
+void dump_function(char *function_name, code_hunk *c, FILE *f);
 
 static void * new_empty_signature(){printf("new_empty_signature\n"); return(NULL);}
 static void * param(symbol sym){printf("param(*)\n"); return(NULL);}

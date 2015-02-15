@@ -3,30 +3,25 @@
 
 /* The code hunks are a circular linked list */
 typedef struct _code_hunk {
-  code_hunk *prev;
-  code_hunk *next;
-  char *hunk;
+  code_list_entry *list;
   int comexprs; /* comma delimited expressions */
   int locvars;  /* local vars declared */
-  int offset;   /* Holds the fp offset when a local var lexpr, hunk is NULL */
+  int offset;   /* Holds the fp offset when a local var lexpr, list is NULL */
 } code_hunk;
 
-code_hunk *append_code_hunk(code_hunk *list, char *code);
-code_hunk *prepend_code_hunk(code_hunk *list, char *code);
-code_hunk *concatenate_code_hunk_lists(code_hunk *list1, code_hunk *list2);
-void free_code_hunk(code_hunk *list);
 
-/* Make a code hunk */
-#define CH(var, val) \
-  code_hunk *var = GC_malloc(sizeof code_hunk);\
-  var->hunk = val;
+typedef struct _code_list_entry {
+  code_string *prev;
+  code_string *next;
+  char *code;
+} code_list_entry;
+
+code_hunk *make_code_hunk(char *code, int comexprs, int locvars, int offset);
+code_hunk *concatenate_code_hunks(code_hunk *ch1, code_hunk *ch2);
+void free_code_hunk(code_hunk *ch);
 
 /* concatenate code hunks */
-#define CCH(list1, list2) \
-  code_hunk *concatenate_code_hunk_lists(list1, list2)
-
-/* emit a code hunk */
-#define ECH(x) \
-  append_code_hunk(NULL, x);
+#define CCH(ch1, ch2) \
+  concatenate_code_hunks(ch1, ch2)
 
 #endif
