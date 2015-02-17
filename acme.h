@@ -38,19 +38,7 @@ ACME_HASH(hash_entry, thing *t1, thing *t);
 ACME_HASH(function_entry, symbol sym, thing *t);
 ACME_HASH(symbol_entry, symbol sym, int i);
 
-enum thing_type {
-  Normal_thing_type = 0,
-  I_thing_type,
-  F_thing_type,
-  S_thing_type,
-  Sym_thing_type,
-  Nil_thing_type,
-  array_thing_type,
-  hash_thing_type
-};
-
 struct _thing {
-  int16_t thing_type;
   union {
     /* Normal case, a hash table for the public and private properties contained in the thing */
     /* Note - this must always be initialized to NULL */
@@ -70,7 +58,7 @@ struct _thing {
     /* a hash */
     hash_entry *h;
   } u;
-  box_list * list;
+  box_list *list;
 };
 
 struct _box_list {
@@ -92,7 +80,15 @@ struct _box_list_entry {
 
 #define MAX_STACK_DEPTH 10000
 
-extern thing *stack;
-extern int sp;
+#ifdef MAIN
+#define extrn extern
+#else
+#define extrn
+#endif
+
+extrn thing *stack;
+extrn box_list *b_true, *b_false, *b_nil;
+extrn thing *t_true, *t_false, *t_nil;
+extrn int sp;
 
 #endif
