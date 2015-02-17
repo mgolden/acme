@@ -80,15 +80,4 @@ struct _box_list_entry {
 
 #define MAX_STACK_DEPTH 10000
 
-#ifdef MAIN
-#define extrn extern
-#else
-#define extrn
-#endif
-
-extrn thing *stack;
-extrn box_list *b_true, *b_false, *b_nil;
-extrn thing *t_true, *t_false, *t_nil;
-extrn int sp;
-
 #endif
