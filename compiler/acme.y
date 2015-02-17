@@ -3,7 +3,7 @@
 
 void yyerror(const char *str)
 {
-  fprintf(stderr,"error: %s\n",str);
+  e_error(str);
 }
 
 int yywrap()
@@ -26,6 +26,7 @@ int main(int argc, char **argv)
   output_file = fopen(output_file_name, "w");
   GC_free(output_file_name);
   yyin = fopen(input_file_name, "r");
+  compiler_init();
   yyparse();
   fclose(yyin);
 }
@@ -52,7 +53,6 @@ static void *signature = NULL;
 %token <s> TOKIF
 %token <s> TOKELSE
 %token <s> TOKELSEIF
-%token <s> TOKEMPTY
 %token <s> TOKRETURN
 %token <s> TOKTRY
 %token <s> TOKCATCH
@@ -60,6 +60,8 @@ static void *signature = NULL;
 %token <s> TOKDO
 %token <s> TOKBLOCKGIVEN
 %token <s> TOKNIL
+%token <s> TOKTRUE
+%token <s> TOKFALSE
 %token <s> TOKYIELD
 %token <s> TOKBEGIN
 
@@ -235,7 +237,12 @@ internal_statement_list:
   ;
 
 internal_statement:
-  blank_line
+  error TOKEOL
+  {
+    e_err("Error matched");
+    $$ = NULL;
+  }
+  | blank_line
   { $$ = $1 }
   | expr_statement /* Pop the stack before every statement */
   { $$ = CCH(pop_stack(1), $2); }
@@ -438,25 +445,9 @@ param_with_default:
   ;
 
 initializer_expression:
-  i
+  cval
   {
     $$ = $1;
-  }
-  | f
-  {
-    $$ = $1;
-  }
-  | s
-  {
-    $$ = $1;
-  }
-  | symbol
-  {
-    $$ = $1;
-  }
-  | nil
-  {
-    $$ = get_nil();
   }
   | TOKLBRACK TOKRBRACK
   {
@@ -569,14 +560,28 @@ nil:
     $$ = get_nil();
   }
   ;
-  
-val:
-  TOKLPAREN expr TOKRPAREN
-  {}
-  | TOKBLOCKGIVEN
+
+true:
+  TOKTRUE
   {
-    $$ = block_given();
+    $$ = get_true();
   }
+  ;
+
+false:
+  TOKFALSE
+  {
+    $$ = get_false();
+  }
+  ;
+
+cval:
+  nil
+  { $$ = $1; }
+  | true
+  { $$ = $1; }
+  | false
+  { $$ = $1; }
   | i
   { $$ = $1; }
   | f
@@ -585,8 +590,17 @@ val:
   { $$ = $1; }
   | symbol
   { $$ = $1; }
-  | nil
+  ;
+
+val:
+  cval:
   { $$ = $1; }
+  TOKLPAREN expr TOKRPAREN
+  { $$ = $2; }
+  | TOKBLOCKGIVEN
+  {
+    $$ = block_given();
+  }
   | TOKAT TOKLPAREN pure_expr_list TOKRPAREN
   {
     $$ = CCH($2, clone($2->comexprs));
@@ -618,6 +632,7 @@ val:
   {
     pop_scope();
     $$ = CCH(CCH(push_stack($3->locvars), $3), pop_stack(n));
+    $$->locvars = 0;
   }
   | TOKYIELD argument_list
   {
@@ -946,15 +961,18 @@ array_lexpr:
 box_statement:
   box_begin external_statement_list TOKEND
   {
-    end_box();
-    pop_frame();
+    pop_label()
+    pop_scope();
+    $$ = CCH(CCH(CCH($1, push_stack($3->locvars)), $3), pop_stack(n));
+    $$->locvars = 0;
   }
   ;
 
 box_begin:
-  TOKBOX const TOKEOL
+  TOKBOX TOKCONST TOKEOL
   {
-    push_frame();
-    start_box($2);
+    push_scope();
+    push_label($2);
+    $$ = NULL;
   }
   ;

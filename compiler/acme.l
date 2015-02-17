@@ -31,7 +31,6 @@ self                    return_s_c(TOKSELF, "self");
 if                      return_s_c(TOKIF, "if");
 else                    return_s_c(TOKELSE, "else");
 elseif                  return_s_c(TOKELSEIF, "elseif");
-empty                   return_s_c(TOKEMPTY, "empty");
 return                  return_s_c(TOKRETURN, "return");
 try                     return_s_c(TOKTRY, "try");
 catch                   return_s_c(TOKCATCH, "catch");
@@ -39,6 +38,8 @@ finally                 return_s_c(TOKFINALLY, "finally");
 do                      return_s_c(TOKDO, "do");
 block_given?            return_s_c(TOKBLOCKGIVEN, "block_given?");
 nil                     return_s_c(TOKNIL, "nil");
+true                    return_s_c(TOKNIL, "true");
+false                   return_s_c(TOKNIL, "false");
 yield                   return_s_c(TOKYIELD, "yield");
 begin                   return_s_c(TOKBEGIN, "begin");
 

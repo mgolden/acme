@@ -9,8 +9,8 @@
 /* Garbage collector */
 #include <gc.h>
 
-/* For defining hashes without bringing in */
-/* the particulars of the hash library *
+/* For defining hashes without bringing in
+ * the particulars of the hash library */
 #include "acme_hash.h"
 
 /* Numeric types */
@@ -29,9 +29,14 @@ typedef struct _thing_entry thing_entry;
 typedef struct _box_list_entry box_list_entry;
 typedef struct _array array;
 typedef struct _hash_entry hash_entry;
+typedef struct _box box;
+typedef struct _box_list box_list;
+typedef struct _box_list_entry box_list_entry;
 
 ACME_HASH(thing_entry, symbol sym, thing *t);
-ACME_HASH(hash_entry, thing *t, thing *t);
+ACME_HASH(hash_entry, thing *t1, thing *t);
+ACME_HASH(function_entry, symbol sym, thing *t);
+ACME_HASH(symbol_entry, symbol sym, int i);
 
 enum thing_type {
   Normal_thing_type = 0,
@@ -39,12 +44,13 @@ enum thing_type {
   F_thing_type,
   S_thing_type,
   Sym_thing_type,
+  Nil_thing_type,
   array_thing_type,
   hash_thing_type
 };
 
 struct _thing {
-  int_16t thing_type;
+  int16_t thing_type;
   union {
     /* Normal case, a hash table for the public and private properties contained in the thing */
     /* Note - this must always be initialized to NULL */
@@ -64,19 +70,29 @@ struct _thing {
     /* a hash */
     hash_entry *h;
   } u;
-  box_list_entry * box_list;
+  box_list * list;
 };
 
-typedef struct _box {
+struct _box_list {
+  /* TODO: put some sort of speedup hash here */
+  box_list_entry *first;
+};
+
+struct _box {
   symbol sym;
   function_entry *functions_hash;
   thing_entry *constants_hash;
   symbol_entry *symbols_hash;
-} box;
+};
 
-struct _box_list {
+struct _box_list_entry {
   box_list *next;
   box *b;
-}
+};
+
+#define MAX_STACK_DEPTH 10000
+
+extern thing *stack;
+extern int sp;
 
 #endif
