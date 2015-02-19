@@ -23,9 +23,9 @@ arg5 (Not used in function)
 .
 
 Just prior to call:
-
+                          <- SP
 n_args (5 in this case)
-function name symbol <- SP
+function name symbol
 self
 block (or nil)
 arg1

@@ -103,7 +103,7 @@ static void *signature = NULL;
 %token <s> TOKEQEQ
 %token <s> TOKNEQ
 %token <s> TOKCOMPARE
-
+f
 %token <s> TOKAMP
 
 %token <s> TOKCARAT
@@ -155,22 +155,24 @@ static void *signature = NULL;
 
 %type <str> optional_block1
 
+%type <str> pp_lexpr
+%type <str> const_or_word_lexpr
+
 %type <sym> word
-%type <sym> pp_lexpr
+%type <sym> const
 
 %type <code_hunk> symbol
-%type <code_hunk> const
 %type <code_hunk> const_or_word
 %type <code_hunk> function_name
 
-%type <code_hunk> unary
-%type <code_hunk> add
-%type <code_hunk> mul
-%type <code_hunk> shift
-%type <code_hunk> comparisonA
-%type <code_hunk> comparisonB
-%type <code_hunk> assignop
-%type <code_hunk> assignboolop
+%type <sym> unary
+%type <sym> add
+%type <sym> mul
+%type <sym> shift
+%type <sym> comparisonA
+%type <sym> comparisonB
+%type <sym> assignop
+%type <sym> assignboolop
 
 %type <code_hunk> internal_statement_list
 %type <code_hunk> internal_statement
@@ -282,50 +284,56 @@ word:
 
 const:
   TOKCONST
-  { $$ = new_sym_thing($1); }
+  { $$ = get_sym($1); }
   ;
 
 const_or_word:
   const
-  { $$ = $1; }
+  { $$ = CCH(get_self(), new_sym_thing_from_sym($1)); }
   | word
-  { $$ = new_sym_thing_from_sym($1); }
+  { $$ = CCH(get_self(), new_sym_thing_from_sym($1)); }
   ;
 
-ppc_statement:
+pp_statement:
   pp_lexpr TOKEQ expr TOKEOL
   {
-    $$ = assign_var(get_reference($1));
+    $$ = CCH(CCH(CCH(CCH($3, get_nil()), get_self()), add_lexpr_symbol_thing($1)), call_send(1));
   }
   | pp_lexpr TOKEOL
   {
     /* Just put the pp member in appropriate table, do not assign */
     $$ = NULL;
   }
-  | const TOKEQ expr TOKEOL
-  {
-    add_const($1);
-    $$ = assign_var(get_reference($1));
-  }
   ;
 
 pp_lexpr:
-  TOKPRIVATE word
+  TOKPRIVATE const_or_word_lexpr
   {
     add_private($2);
     $$ = $2;
   }
-  | TOKPUBLIC word
+  | TOKPUBLIC const_or_word_lexpr
   {
     add_public($2);
     $$ = $2;
   }
   ;
-  
+
+const_or_word_lexpr:
+  TOKCONST
+  {
+    $$ = $1;
+  }
+  | TOKWORD
+  {
+    $$ = $1;
+  }
+  ;
+
 def_statement:
   def_begin internal_statement_list TOKEND TOKEOL
   {
-    
+    $$ = get_nil();
   }
   ;
   
@@ -340,39 +348,35 @@ def_begin:
 function_name:
   word
   {
-    $$ = new_sym_thing_from_sym($1);
+    $$ = get_sym($1);
   }
   | TOKWORD TOKEQ
   {
-    /* Allowed, but not implemented yet */
-    char *c = malloc(strlen($1)+1);
-    strcpy(c, $1);
-    strcat(c, "=");
-    $$ = new_sym_thing(c);
+    $$ = get_lexpr_sym($1);
   }
   | TOKLBRACK TOKRBRACK
   {
-    $$ = new_sym_thing("[]");
+    $$ = get_sym("[]");
   }
   | TOKLBRACK TOKRBRACK TOKEQ
   {
-    $$ = new_sym_thing("[]=");
+    $$ = get_sym("[]=");
   }
   | TOKPLUS TOKAT
   {
-    $$ = new_sym_thing("+@");
+    $$ = get_sym("+@");
   }
-  | TOKPLUS TOKAT
+  | TOKMINUS TOKAT
   {
-    $$ = new_sym_thing("-@");
+    $$ = get_sym("-@");
   }
   | TOKTILDE
   {
-    $$ = new_sym_thing($1);
+    $$ = get_sym($1);
   }
   | TOKBANG
   {
-    $$ = new_sym_thing($1);
+    $$ = get_sym($1);
   }
   | add
   { $$ = $1; }
@@ -455,7 +459,7 @@ initializer_expression:
   }
   | TOKLBRACE TOKRBRACE
   {
-    $$ = new_hash(0);
+    $$ = new_hash_thing(0);
   }
   ;
 
@@ -463,66 +467,59 @@ unary:
   TOKPLUS | TOKMINUS | TOKBANG | TOKTILDE  
   {
     char *t;
-    if(strcmp($1, "+")) {t = "+@";}
-    else if(strcmp($1, "-")) {t = "-@";}
+    if(strcmp($1, "+")==0) {t = "+@";}
+    else if(strcmp($1, "-")==0) {t = "-@";}
     else {t = $1;}
-    $$ = new_sym_thing(t);
+    $$ = get_sym(t);
   }
   ;
 
 add:
   TOKPLUS | TOKMINUS
   {
-    $$ = new_sym_thing($1);
+    $$ = get_sym($1);
   }
   ;
 
 mul:
   TOKSTAR | TOKSLASH | TOKPERCENT
   {
-    $$ = new_sym_thing($1);
+    $$ = get_sym($1);
   }
   ;
   
 shift:
   TOKSHIFTL | TOKSHIFTR
   {
-    $$ = new_sym_thing($1);
+    $$ = get_sym($1);
   }
   ;
 
 comparisonA:
   TOKGT | TOKLT | TOKGE | TOKLE
   {
-    $$ = new_sym_thing($1);
+    $$ = get_sym($1);
   }
   ;
 
 comparisonB:
   TOKEQEQ | TOKNEQ | TOKCOMPARE
   {
-    $$ = new_sym_thing($1);
+    $$ = get_sym($1);
   }
   ;
 
 assignop:
   TOKPLUSEQ | TOKMINUSEQ | TOKSTAREQ | TOKSLASHEQ | TOKPERCENTEQ | TOKAMPEQ | TOKCARATEQ | TOKPIPEEQ | TOKSHIFTLEQ | TOKSHIFTREQ
   {
-    $$ = new_sym_thing($1);
+    $$ = get_sym($1);
   }
   ;
 
 assignboolop:
   TOKANDEQ | TOKOREQ
   {
-    $$ = new_sym_thing($1);
-  }
-  ;
-
-symbol:
-  TOKSYMBOL
-  {
-    $$ = new_sym_thing($1);
+    $$ = get_sym($1);
   }
   ;
 
@@ -533,24 +530,10 @@ begin:
   }
   ;
 
-i:
-  TOKI
+buck:
+  TOKBUCK
   {
-    $$ = new_i_thing($1);
-  }
-  ;
-
-f:
-  TOKF
-  {
-    $$ = new_f_thing($1);
-  }
-  ;
-
-s:
-  TOKS
-  {
-    $$ = new_s_thing($1);
+    $$ = get_buck();
   }
   ;
 
@@ -575,8 +558,38 @@ false:
   }
   ;
 
+i:
+  TOKI
+  {
+    $$ = new_i_thing($1);
+  }
+  ;
+
+f:
+  TOKF
+  {
+    $$ = new_f_thing($1);
+  }
+  ;
+
+s:
+  TOKS
+  {
+    $$ = new_s_thing($1);
+  }
+  ;
+
+symbol:
+  TOKSYMBOL
+  {
+    $$ = new_sym_thing($1);
+  }
+  ;
+
 cval:
-  nil
+  buck
+  { $$ = $1; }
+  | nil
   { $$ = $1; }
   | true
   { $$ = $1; }
@@ -593,9 +606,9 @@ cval:
   ;
 
 val:
-  cval:
+  cval
   { $$ = $1; }
-  TOKLPAREN expr TOKRPAREN
+  | TOKLPAREN expr TOKRPAREN
   { $$ = $2; }
   | TOKBLOCKGIVEN
   {
@@ -612,7 +625,7 @@ val:
   { $$ = $1; }
   | unary val
   {
-    $$ = CCH(CCH(CCH($1, $2), get_nil()), call_send(0));
+    $$ = CCH(CCH(CCH(get_nil(), $2), $1), call_send(0));
   }
   | function_call
   { $$ = $1; }
@@ -645,7 +658,7 @@ factor:
   { $$ = $1; }
   | factor mul val
   {
-    $$ = CCH(CCH($2, get_nil()), call_send(1));
+    $$ = CCH(CCH(CCH(CCH($3, get_nil()), $1), new_sym_thing_from_sym($2)), call_send(1));
   }
   ;
 
@@ -654,7 +667,7 @@ term:
   { $$ = $1; }
   | term add factor
   {
-    $$ = CCH(CCH($2, get_nil()), call_send(1));
+    $$ = CCH(CCH(CCH(CCH($3, get_nil()), $1), new_sym_thing_from_sym($2)), call_send(1));
   }
   ;
 
@@ -663,7 +676,7 @@ exprI:
   { $$ = $1; }
   | exprI shift term
   {
-    $$ = CCH(CCH($2, get_nil()), call_send(1));
+    $$ = CCH(CCH(CCH(CCH($3, get_nil()), $1), new_sym_thing_from_sym($2)), call_send(1));
   }
   ;
 
@@ -672,7 +685,7 @@ exprH:
   { $$ = $1; }
   | exprH comparisonA exprI
   {
-    $$ = CCH(CCH($2, get_nil()), call_send(1));
+    $$ = CCH(CCH(CCH(CCH($3, get_nil()), $1), new_sym_thing_from_sym($2)), call_send(1));
   }
   ;
   
@@ -681,7 +694,7 @@ exprG:
   { $$ = $1; }
   | exprG comparisonB exprH
   {
-    $$ = CCH(CCH($2, get_nil()), call_send(1));
+    $$ = CCH(CCH(CCH(CCH($3, get_nil()), $1), new_sym_thing_from_sym($2)), call_send(1));
   }
   ;
 
@@ -690,7 +703,7 @@ exprF:
   { $$ = $1; }
   | exprF TOKAMP exprG
   {
-    $$ = CCH(CCH($2, get_nil()), call_send(1));
+    $$ = CCH(CCH(CCH(CCH($3, get_nil()), $1), new_sym_thing($2)), call_send(1));
   }
   ;
 
@@ -699,7 +712,7 @@ exprE:
   { $$ = $1; }
   | exprE TOKCARAT exprF
   {
-    $$ = CCH(CCH($2, get_nil()), call_send(1));
+    $$ = CCH(CCH(CCH(CCH($3, get_nil()), $1), new_sym_thing($2)), call_send(1));
   }
   ;
   
@@ -708,7 +721,7 @@ exprD:
   { $$ = $1; }
   | exprD TOKPIPE exprE
   {
-    $$ = CCH(CCH($2, get_nil()), call_send(1));
+    $$ = CCH(CCH(CCH(CCH($3, get_nil()), $1), new_sym_thing($2)), call_send(1));
   }
   ;
   
@@ -717,7 +730,7 @@ exprC:
   { $$ = $1; }
   | exprC TOKAND exprD
   {
-    $$ = CCH(CCH($2, get_nil()), call_send(1));
+    $$ = CCH(CCH(CCH(CCH($3, get_nil()), $1), new_sym_thing($2)), call_send(1));
   }
   ;
 
@@ -726,7 +739,7 @@ exprB:
   { $$ = $1; }
   | exprB TOKOR exprC
   {
-    $$ = CCH(CCH($2, get_nil()), call_send(1));
+    $$ = CCH(CCH(CCH(CCH($3, get_nil()), $1), new_sym_thing($2)), call_send(1));
   }
   ;
 
@@ -935,11 +948,7 @@ pure_lexpr:
   }
   | val TOKDOT const_or_word
   {
-    $$ = CCH($3,$1),get_member_reference());
-  }
-  | TOKBUCK TOKDOT const_or_word
-  {
-    $$ = CCH($3,get_buck()),get_member_reference());
+    $$ = CCH(CCH(get_nil(), $1), $3);
   }
   ;
 
