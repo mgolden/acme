@@ -46,10 +46,6 @@ code_hunk * get_false(void) {
   return emit_push("t_false");
 }
 
-symbol get_sym(const char *s) {
-  return 12346;
-}
-
 code_hunk * new_i_thing(acme_int i) {
   char * result = (char *) GC_malloc(100);
   sprintf("{thing *t = stack+(sp++); t->u.i=%lld; t->box_list=b_i;}\n", (long long) i);

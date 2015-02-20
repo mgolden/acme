@@ -38,6 +38,7 @@ static void usage(void) {
 
 
 static void *signature = NULL;
+
 %}
 
 %token TOKEOF  0  "end of file"
@@ -331,18 +332,24 @@ const_or_word_lexpr:
   ;
 
 def_statement:
-  def_begin internal_statement_list TOKEND TOKEOL
+  def_begin_line internal_statement_list TOKEND TOKEOL
   {
+    emit_function($2, signature); /* Also must free the signature */
     $$ = get_nil();
   }
   ;
-  
+
 def_begin:
-  TOKDEF function_name start_signature signature TOKEOL
+  TOKDEF function_name
   {
+    signature = new_empty_signature($1);
     fresh_scope();
-    emit_function($2, signature); /* Also must free the signature */
   }
+  ;
+
+def_begin_line:
+  def_begin signature TOKEOL
+  {}
   ;
 
 function_name:
@@ -390,12 +397,6 @@ function_name:
   { $$ = $1; }
   ;
 
-start_signature:
-  {
-    signature = new_empty_signature();
-  }
-  ;
-  
 signature:
   | TOKLPAREN TOKRPAREN
   | TOKLPAREN non_empty_signature TOKRPAREN
@@ -422,7 +423,7 @@ non_star_signature:
 signature_star_part:
   TOKSTAR word
   {
-    signature_append(signature, star_param($4));
+    star_param(signature, $2));
   }
   ;
 
@@ -434,7 +435,7 @@ param_list:
 param:
   word
   {
-    signature_append(signature, param($1));
+    param(signature, $1);
   }
   ;
   
@@ -445,7 +446,7 @@ param_with_default_list:
 
 param_with_default:
   word TOKEQ initializer_expression
-  { signature_append(signature, param_with_default($1, $3)); }
+  { param_with_default(signature, $1, $3)); }
   ;
 
 initializer_expression:

@@ -9,6 +9,14 @@
 
 typedef struct _signature signature;
 
+#ifdef MAIN
+#define extrn extern
+#else
+#define extrn
+#endif
+
+extrn symbol_definition *symbol_table;
+
 void dump_function(char *function_name, code_hunk *c, FILE *f);
 
 void compiler_init(void);
@@ -43,8 +51,6 @@ code_hunk * clone(int n);
 
 symbol get_lexpr_sym(const char * s);
 code_hunk * new_lexpr_symbol_thing(const char * s);
-
-signature * new_empty_signature(){printf("new_empty_signature\n"); return(NULL);}
 
 code_hunk * param(symbol sym){printf("param(*)\n"); return(NULL);}
 code_hunk * param_with_default(symbol sym, const char * p){printf("param(*, *)\n"); return(NULL);}

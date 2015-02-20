@@ -13,13 +13,19 @@
 #define uthash_malloc(sz) GC_malloc(sz)
 #define uthash_free(ptr,sz) GC_free(ptr)
 
-#define ACME_HASH(name, keydecl, valdecl) \
-typedef struct _ ## name { \
+#define ACME_HASH(typename, keydecl, valdecl) \
+typedef struct _ ## typename { \
   keydecl; \
   valdecl; \
   UT_hash_handle hh; \
-} name;
+} typename;
 /* NB: UT_hash_handle is internal, used only by uthash;
  * makes this structure hashable */
+
+#define NEW_ACME_HASH(typename, v) \
+  { \
+    (typename *) v = (typename *) GC_malloc(sizeof(typename)); \
+    v->hh = NULL; \
+  }
 
 #endif

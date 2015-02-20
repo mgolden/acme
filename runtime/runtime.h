@@ -3,7 +3,7 @@
 
 #include "../acme.h"
 
-#ifdef MAIN
+#ifndef MAIN
 #define extrn extern
 #else
 #define extrn
@@ -14,7 +14,7 @@ extrn box_list *b_buck, *b_nil, *b_true, *b_false, *b_i, *b_f, *b_s, *b_sym, *b_
 extrn thing *t_buck, *t_nil, *t_true, *t_false;
 extrn int sp;
 
-#ifdef MAIN
+#ifndef MAIN
 extern box_list *special_box_lists[];
 #else
 box_list *special_box_lists[] = {b_buck, b_nil, b_true, b_false, b_i, b_f, b_s, b_sym, b_hash, b_array};

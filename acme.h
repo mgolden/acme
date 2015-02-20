@@ -37,6 +37,7 @@ ACME_HASH(thing_entry, symbol sym, thing *t);
 ACME_HASH(hash_entry, thing *t1, thing *t);
 ACME_HASH(function_entry, symbol sym, thing *t);
 ACME_HASH(symbol_entry, symbol sym, int i);
+ACME_HASH(symbol_definition, symbol sym, char *s);
 
 struct _thing {
   union {
@@ -79,5 +80,13 @@ struct _box_list_entry {
 };
 
 #define MAX_STACK_DEPTH 10000
+
+#ifndef MAIN
+#define extrn extern
+#else
+#define extrn
+#endif
+
+extrn symbol_definition *symbol_table;
 
 #endif
