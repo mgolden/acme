@@ -60,11 +60,9 @@ static symbol add_symbol(const char *s){printf("add_symbol(%s)\n", s); return 0;
 
 static void add_var(symbol sym){printf("add_var(*)\n");}
 static void add_public(symbol sym){printf("add_public(*)\n");}
-static void add_private(symbol sym){printf("add_private(*)\n");}
+static void add_sym(symbol sym){printf("add_private(*)\n");}
 static void add_const(symbol sym){printf("add_const(*)\n");}
 code_hunk * get_reference(symbol sym){printf("get_reference(*)\n"); return(NULL);}
-
-static void start_box(symbol sym){printf("start_box(*)\n");}
 
 static void assign_var(){printf("assign_var\n");}
 static void assign_array_var(){printf("assign_array_var\n");}

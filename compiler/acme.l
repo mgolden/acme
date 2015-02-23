@@ -21,12 +21,12 @@
 %}
 %%
                         /* Keywords */
-box                     return_s_c(TOKBOX, "box");
+ability|abil            return_s_c(TOKABILITY, "ability");
 end                     return_s_c(TOKEND, "end");
-def                     return_s_c(TOKDEF, "def");
+method|meth             return_s_c(TOKMETHOD, "method");
 var                     return_s_c(TOKVAR, "var");
-public                  return_s_c(TOKPUBLIC, "public");
-private                 return_s_c(TOKPRIVATE, "private");
+property|prop           return_s_c(TOKPROPERTY, "property");
+shy                     return_s_c(TOKSHY, "shy");
 self                    return_s_c(TOKSELF, "self");
 if                      return_s_c(TOKIF, "if");
 else                    return_s_c(TOKELSE, "else");

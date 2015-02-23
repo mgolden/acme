@@ -1,9 +1,9 @@
-box Label
+ability Label
   public v
   var x = 1
   public z = 10
   RRR = 15
-  private m = 20
+  shy m = 20
   def y(z)
     var y = 10 ++++ 20
     var r = []

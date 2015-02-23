@@ -44,12 +44,12 @@ static void *signature = NULL;
 %token TOKEOF  0  "end of file"
 
 /* Keywords */
-%token <s> TOKBOX
+%token <s> TOXABILITY
 %token <s> TOKEND
-%token <s> TOKDEF
+%token <s> TOKMETHOD
 %token <s> TOKVAR
-%token <s> TOKPUBLIC
-%token <s> TOKPRIVATE
+%token <s> TOKPROPERTY
+%token <s> TOKSHY
 %token <s> TOKSELF
 %token <s> TOKIF
 %token <s> TOKELSE
@@ -154,9 +154,11 @@ f
   code_hunk *code_hunk;
 }
 
+%type <i> shy
+
 %type <str> optional_block1
 
-%type <str> pp_lexpr
+%type <str> property_lexpr
 %type <str> const_or_word_lexpr
 
 %type <sym> word
@@ -182,8 +184,8 @@ f
 %type <code_hunk> blank_line
 %type <code_hunk> expr_statement
 %type <code_hunk> ppc_statement
-%type <code_hunk> def_statement
-%type <code_hunk> def_begin
+%type <code_hunk> method_statement
+%type <code_hunk> method_begin
 %type <code_hunk> initializer_expression
 %type <code_hunk> val
 %type <code_hunk> factor
@@ -215,8 +217,8 @@ f
 %type <code_hunk> pure_lexpr
 %type <code_hunk> var_lexpr
 %type <code_hunk> array_lexpr
-%type <code_hunk> box_statement
-%type <code_hunk> box_begin
+%type <code_hunk> ability_statement
+%type <code_hunk> ability_begin
 
 %start start
 
@@ -259,9 +261,9 @@ external_statement_list:
 external_statement:
   internal_statement
   { $$ = $1; }
-  | def_statement
+  | method_statement
   { $$ = CCH(pop_stack(1), $2); }
-  | box_statement
+  | ability_statement
   { $$ = CCH(pop_stack(1), $2); }
   | ppc_statement
   { $$ = CCH(pop_stack(1), $2); }
@@ -295,28 +297,33 @@ const_or_word:
   { $$ = CCH(get_self(), new_sym_thing_from_sym($1)); }
   ;
 
-pp_statement:
-  pp_lexpr TOKEQ expr TOKEOL
+property_statement:
+  property_lexpr TOKEQ expr TOKEOL
   {
     $$ = CCH(CCH(CCH(CCH($3, get_nil()), get_self()), add_lexpr_symbol_thing($1)), call_send(1));
   }
-  | pp_lexpr TOKEOL
+  | property_lexpr TOKEOL
   {
     /* Just put the pp member in appropriate table, do not assign */
     $$ = NULL;
   }
   ;
 
-pp_lexpr:
-  TOKPRIVATE const_or_word_lexpr
+shy:
   {
-    add_private($2);
-    $$ = $2;
+    $$ = 0;
   }
-  | TOKPUBLIC const_or_word_lexpr
+  | TOKSHY
   {
-    add_public($2);
-    $$ = $2;
+    $$ = 1;
+  }
+  ;
+
+property_lexpr:
+  TOKPROPERTY shy const_or_word_lexpr
+  {
+    add_property($3, $1);
+    $$ = $3;
   }
   ;
 
@@ -331,25 +338,26 @@ const_or_word_lexpr:
   }
   ;
 
-def_statement:
-  def_begin_line internal_statement_list TOKEND TOKEOL
+method_statement:
+  method_line internal_statement_list TOKEND TOKEOL
   {
-    emit_function($2, signature); /* Also must free the signature */
+    emit_function($2, signature);
     $$ = get_nil();
   }
   ;
 
-def_begin:
-  TOKDEF function_name
+method_line:
+  method_name signature TOKEOL
   {
-    signature = new_empty_signature($1);
-    fresh_scope();
+    fresh_scope(signature);
   }
   ;
 
-def_begin_line:
-  def_begin signature TOKEOL
-  {}
+method_name:
+  TOKMETHOD shy function_name
+  {
+    signature = new_empty_signature($3, $2);
+  }
   ;
 
 function_name:
@@ -527,7 +535,7 @@ assignboolop:
 begin:
   TOKBEGIN
   {
-    push_scope();
+    push_scope(NULL);
   }
   ;
 
@@ -831,29 +839,26 @@ optional_block:
   {
     $$ = get_nil();
   }
-  | TOKDO optional_block1 optional_pipe_param_list TOKEOL internal_statement_list TOKEND
+  | do optional_pipe_param_list TOKEOL internal_statement_list TOKEND
   {
     end_block();
-    dump_function($2, $5, output_file);
-    $$ = new_sym_thing($2);
+    dump_function(get_signature_name(signature), $4, output_file);
   }
   ;
 
-optional_block1:
+do:
+  TOKDO
   {
-    start_block();
-    $$ = make_block_name();
+    char * name = make_block_name();
+    signature = new_empty_signature(name);
+    GC_free(name);
   }
   ;
 
 optional_pipe_param_list:
-  {
-    emit_pipe_param_list(signature);
-  }
+  { push_scope(signature); }
   | TOKPIPE param_list TOKPIPE
-  {
-    emit_pipe_param_list(signature);
-  }
+  { push_scope(signature); }
   ;
 
 array:
@@ -968,8 +973,8 @@ array_lexpr:
   }
   ;
   
-box_statement:
-  box_begin external_statement_list TOKEND
+ability_statement:
+  ability_begin external_statement_list TOKEND
   {
     pop_label()
     pop_scope();
@@ -978,10 +983,10 @@ box_statement:
   }
   ;
 
-box_begin:
-  TOKBOX TOKCONST TOKEOL
+ability_begin:
+  TOXABILITY TOKCONST TOKEOL
   {
-    push_scope();
+    push_scope(NULL);
     push_label($2);
     $$ = NULL;
   }

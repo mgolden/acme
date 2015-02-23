@@ -26,12 +26,12 @@ typedef int (*acme_function)(int sp);
 /* typedefs for structs that are circular */
 typedef struct _thing thing;
 typedef struct _thing_entry thing_entry;
-typedef struct _box_list_entry box_list_entry;
+typedef struct _ability_list_entry ability_list_entry;
 typedef struct _array array;
 typedef struct _hash_entry hash_entry;
-typedef struct _box box;
-typedef struct _box_list box_list;
-typedef struct _box_list_entry box_list_entry;
+typedef struct _ability ability;
+typedef struct _ability_list ability_list;
+typedef struct _ability_list_entry ability_list_entry;
 
 ACME_HASH(thing_entry, symbol sym, thing *t);
 ACME_HASH(hash_entry, thing *t1, thing *t);
@@ -41,11 +41,10 @@ ACME_HASH(symbol_definition, symbol sym, char *s);
 
 struct _thing {
   union {
-    /* Normal case, a hash table for the public and private properties contained in the thing */
+    /* Normal case, a hash table for the properties contained in the thing */
     /* Note - this must always be initialized to NULL */
     thing_entry *things_hash;
     /* All of the below are known as "atomic" things */
-    /* They cannot have an eigenclass */
     /* an integer */
     acme_int i;
     /* a float */
@@ -59,24 +58,24 @@ struct _thing {
     /* a hash */
     hash_entry *h;
   } u;
-  box_list *list;
+  ability_list *list;
 };
 
-struct _box_list {
+struct _ability_list {
   /* TODO: put some sort of speedup hash here */
-  box_list_entry *first;
+  ability_list_entry *first;
 };
 
-struct _box {
+struct _ability {
   symbol sym;
   function_entry *functions_hash;
   thing_entry *constants_hash;
   symbol_entry *symbols_hash;
 };
 
-struct _box_list_entry {
-  box_list *next;
-  box *b;
+struct _ability_list_entry {
+  ability_list *next;
+  ability *b;
 };
 
 #define MAX_STACK_DEPTH 10000

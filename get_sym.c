@@ -9,13 +9,13 @@ symbol get_sym(const char *s) {
   if(t==NULL) {
     NEW_ACME_HASH(symbol_definition, sd);
     sd -> sym = sym;
-    sd -> s = s;
+    sd -> s = strdup(s);
     HASH_ADD_INT( users, id, s );  /* id: name of key field */
   }
   else {
     if(strcmp(t->s, s)!=0) {
       sprintf(stderr, "collision: %s != %s\n", t->s, s);
-      e_fatal("collision of different strings as symbols");
+      e_fatal("collision of different strings as same symbol");
     }
     /* else same string inserted again, all ok */
   }

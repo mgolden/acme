@@ -11,6 +11,8 @@ args (array)
 a4 (copy or default)
 a3 (copy or default)
 OLD FP  <- FP
+n_args
+function name symbol
 self
 block (or nil)
 arg1

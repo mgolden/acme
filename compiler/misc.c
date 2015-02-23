@@ -48,13 +48,13 @@ code_hunk * get_false(void) {
 
 code_hunk * new_i_thing(acme_int i) {
   char * result = (char *) GC_malloc(100);
-  sprintf("{thing *t = stack+(sp++); t->u.i=%lld; t->box_list=b_i;}\n", (long long) i);
+  sprintf("{thing *t = stack+(sp++); t->u.i=%lld; t->ability_list=b_i;}\n", (long long) i);
   return CH(result);
 }
 
 code_hunk * new_f_thing(acme_float f) {
   char * result = (char *) GC_malloc(100);
-  sprintf("{thing *t = stack+(sp++); t->u.f=%24.20e; t->box_list=b_f;}\n", f);
+  sprintf("{thing *t = stack+(sp++); t->u.f=%24.20e; t->ability_list=b_f;}\n", f);
   return CH(result);
 }
 
@@ -73,13 +73,13 @@ code_hunk * new_s_thing(const char *s) {
 */
   l = strlen(s);
   result = (char *) GC_malloc(100 + l);
-  sprintf("{thing *t = stack+(sp++); t->u.s=strdup(\"%s\"); t->box_list=b_s;}\n", s);
+  sprintf("{thing *t = stack+(sp++); t->u.s=strdup(\"%s\"); t->ability_list=b_s;}\n", s);
   return CH(result);
 }
 
 code_hunk * new_sym_thing_from_sym(symbol sym) {
   char * result = (char *) GC_malloc(100);
-  sprintf("{thing *t = stack+(sp++); t->u.sym=%d; t->box_list=b_sym;}\n", sym);
+  sprintf("{thing *t = stack+(sp++); t->u.sym=%d; t->ability_list=b_sym;}\n", sym);
   return CH(result);
 }
 
@@ -117,7 +117,6 @@ code_hunk * start_elseif(void) {
 }
 
 code_hunk * start_else(void) {
-  open_ifs++;
   return CH(strdup("}\nelse {\n");
 }
 
