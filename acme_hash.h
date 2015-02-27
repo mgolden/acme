@@ -29,3 +29,7 @@ typedef struct _ ## typename { \
   }
 
 #endif
+
+#define ACME_HASH_ITER(hashname, membertype, var) \
+  ;membertype *var, *tmp; \
+  HASH_ITER(hh, hashname, var, tmp)

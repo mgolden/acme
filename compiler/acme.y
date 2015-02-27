@@ -37,7 +37,7 @@ static void usage(void) {
 }
 
 
-static void *signature = NULL;
+static signature *sig = NULL;
 
 %}
 
@@ -341,7 +341,7 @@ const_or_word_lexpr:
 method_statement:
   method_line internal_statement_list TOKEND TOKEOL
   {
-    emit_function($2, signature);
+    emit_function($2, sig);
     $$ = get_nil();
   }
   ;
@@ -349,14 +349,14 @@ method_statement:
 method_line:
   method_name signature TOKEOL
   {
-    fresh_scope(signature);
+    fresh_scope(sig);
   }
   ;
 
 method_name:
   TOKMETHOD shy function_name
   {
-    signature = new_empty_signature($3, $2);
+    sig = new_empty_signature($3, $2);
   }
   ;
 
@@ -431,7 +431,7 @@ non_star_signature:
 signature_star_part:
   TOKSTAR word
   {
-    star_param(signature, $2));
+    star_param(sig, $2));
   }
   ;
 
@@ -443,7 +443,7 @@ param_list:
 param:
   word
   {
-    param(signature, $1);
+    param(sig, $1);
   }
   ;
   
@@ -454,7 +454,7 @@ param_with_default_list:
 
 param_with_default:
   word TOKEQ initializer_expression
-  { param_with_default(signature, $1, $3)); }
+  { param_with_default(sig, $1, $3)); }
   ;
 
 initializer_expression:
@@ -842,7 +842,7 @@ optional_block:
   | do optional_pipe_param_list TOKEOL internal_statement_list TOKEND
   {
     end_block();
-    dump_function(get_signature_name(signature), $4, output_file);
+    dump_function(get_signature_name(sig), $4, output_file);
   }
   ;
 
@@ -850,15 +850,15 @@ do:
   TOKDO
   {
     char * name = make_block_name();
-    signature = new_empty_signature(name);
+    sig = new_empty_signature(name);
     GC_free(name);
   }
   ;
 
 optional_pipe_param_list:
-  { push_scope(signature); }
+  { push_scope(sig); }
   | TOKPIPE param_list TOKPIPE
-  { push_scope(signature); }
+  { push_scope(sig); }
   ;
 
 array:

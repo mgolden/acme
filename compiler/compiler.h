@@ -6,6 +6,7 @@
 #include "code_hunk.h"
 #include "acme_error.h"
 #include "label.h"
+#include "variable_table.h"
 
 typedef struct _signature signature;
 
@@ -20,9 +21,6 @@ extrn symbol_definition *symbol_table;
 void dump_function(char *function_name, code_hunk *c, FILE *f);
 
 void compiler_init(void);
-
-code_hunk * push_stack(int n);
-code_hunk * pop_stack(int n);
 
 code_hunk * get_buck(void);
 code_hunk * get_nil(void);
@@ -70,12 +68,7 @@ static void dereference(){printf("dereference\n");}
 
 static void do_function_call(acme_int n){printf("do_function_call(%d)\n", (int) n);}
 
-static void signature_append(const void * x, const char * y){printf("signature_append(*,*)\n");}
 static void emit_function(symbol sym, const void * p){printf("emit_function(*, *)\n");}
 static void emit_pipe_param_list(const char *s){printf("emit_pipe_param_list(*)\n");}
-
-static void push_compile(){printf("push_compile()\n");}
-code_hunk * pop_compile(){printf("pop_compile()\n"); return(NULL);}
-
 
 #endif

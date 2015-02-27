@@ -1,4 +1,4 @@
-#include <label.h>
+#include "compiler.h"
 
 static char *label_stack[MAX_LABEL_DEPTH] = {0};
 static int label_stack_pointer = 0;
