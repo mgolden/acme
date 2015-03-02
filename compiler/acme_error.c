@@ -1,14 +1,21 @@
 #include <acme_error.h>
 
-static void e_base(char *error) {
-  fprintf(stderr, "error: %s\nat %s on line %d\n", error, yy_get_text(), yy_get_lineno());
+#include <stdio.h>
+#include <stdlib.h>
+
+static void e_base(const char *level, const char *error) {
+  fprintf(stderr, "%s: %s\nat %s on line %d\n", level, error, yy_get_text(), yy_get_lineno());
 }
 
-void e_error(char *error) {
-  e_base(error);
+void e_warning(const char *error) {
+  e_base("warning", error);
 }
 
-void e_fatal(char *error) {
-  e_base(error);
+void e_error(const char *error) {
+  e_base("error", error);
+}
+
+void e_fatal(const char *error) {
+  e_base("fatal", error);
   exit(1);
 }

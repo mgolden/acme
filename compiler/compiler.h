@@ -56,7 +56,6 @@ code_hunk * star_param(symbol sym){printf("param(*)\n"); return(NULL);}
 
 static symbol add_symbol(const char *s){printf("add_symbol(%s)\n", s); return 0;}
 
-static void add_var(symbol sym){printf("add_var(*)\n");}
 static void add_public(symbol sym){printf("add_public(*)\n");}
 static void add_sym(symbol sym){printf("add_private(*)\n");}
 static void add_const(symbol sym){printf("add_const(*)\n");}

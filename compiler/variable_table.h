@@ -6,4 +6,6 @@ void push_scope(signature *sig);
 void fresh_scope(signature *sig);
 void pop_scope(void);
 
+void add_var(symbol sym);
+
 #endif

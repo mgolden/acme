@@ -1,12 +1,18 @@
 #include "compiler.h"
 
-ACME_HASH(variable_table_entry, symbol sym, int offset);
+typedef struct _variable_table_data {
+  int fp_offset;
+  int decl_line;
+} variable_table_data;
+
+DECLARE_ACME_HASH(variable_table_entry, symbol sym, variable_table_data vtd);
 
 typedef struct _scope scope;
 
 struct scope {
   scope *parent;
   int fresh;
+  int current_top;
   variable_table_entry *variable_table;
 }
 
@@ -16,6 +22,7 @@ static scope *new_scope(void) {
   scope *s = GC_malloc(sizeof(scope));
   s->parent = NULL;
   s->fresh = 0;
+  s->current_top = 0;
   s->variable_table = NEW_ACME_HASH(scope);
   return s;
 }
@@ -44,9 +51,24 @@ void pop_scope(void) {
   if(p == NULL) {
     e_fatal("Attempt to pop bottom of scope stack")
   }
-  ACME_HASH_ITER(scope_stack->variable_table, variable_table_entry, vte) {
-      GC_free(vte);
+  ITERATE_ACME_HASH(scope_stack->variable_table, variable_table_entry, vte) {
+    GC_free(vte);
   }
   GC_free(scope_stack);
   scope_stack = p;
+}
+
+void add_var(symbol sym) {
+  variable_table_entry *vte;
+  FIND_BY_SYMBOL_ACME_HASH(scope_stack->variable_table, sym, vte);
+  if(vte != NULL) {
+    e_warning("variable redeclared");
+    return;
+  }
+  NEW_ACME_HASH(variable_table_entry, vte);
+  vte -> sym = sym;
+  vte -> vtd. = strdup(s);
+  ADD_BY_SYMBOL_ACME_HASH(symbol_table, sd);
+}
+  
 }

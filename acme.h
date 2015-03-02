@@ -33,11 +33,11 @@ typedef struct _ability ability;
 typedef struct _ability_list ability_list;
 typedef struct _ability_list_entry ability_list_entry;
 
-ACME_HASH(thing_entry, symbol sym, thing *t);
-ACME_HASH(hash_entry, thing *t1, thing *t);
-ACME_HASH(function_entry, symbol sym, thing *t);
-ACME_HASH(symbol_entry, symbol sym, int i);
-ACME_HASH(symbol_definition, symbol sym, char *s);
+DECLARE_ACME_HASH(thing_entry, symbol sym, thing *t);
+DECLARE_ACME_HASH(hash_entry, thing *t1, thing *t);
+DECLARE_ACME_HASH(function_entry, symbol sym, thing *t);
+DECLARE_ACME_HASH(symbol_entry, symbol sym, int i);
+DECLARE_ACME_HASH(symbol_definition, symbol sym, char *s);
 
 struct _thing {
   union {

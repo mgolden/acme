@@ -10,7 +10,7 @@ symbol get_sym(const char *s) {
     NEW_ACME_HASH(symbol_definition, sd);
     sd -> sym = sym;
     sd -> s = strdup(s);
-    HASH_ADD_INT( users, id, s );  /* id: name of key field */
+    ADD_BY_SYMBOL_ACME_HASH(symbol_table, sd);
   }
   else {
     if(strcmp(t->s, s)!=0) {
