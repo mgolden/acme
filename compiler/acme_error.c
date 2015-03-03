@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 static void e_base(const char *level, const char *error) {
-  fprintf(stderr, "%s: %s\nat %s on line %d\n", level, error, yy_get_text(), yy_get_lineno());
+  fprintf(stderr, "%s: %s\nat %s on line %d\n", level, error, yyget_text(), yyget_lineno());
 }
 
 void e_warning(const char *error) {

@@ -104,7 +104,7 @@ static signature *sig = NULL;
 %token <s> TOKEQEQ
 %token <s> TOKNEQ
 %token <s> TOKCOMPARE
-f
+
 %token <s> TOKAMP
 
 %token <s> TOKCARAT
@@ -156,17 +156,30 @@ f
 
 %type <i> shy
 
-%type <str> optional_block1
-
 %type <str> property_lexpr
 %type <str> const_or_word_lexpr
 
 %type <sym> word
 %type <sym> const
 
+%type <code_hunk> buck
+%type <code_hunk> nil
+%type <code_hunk> true
+%type <code_hunk> false
+%type <code_hunk> i
+%type <code_hunk> f
+%type <code_hunk> s
 %type <code_hunk> symbol
 %type <code_hunk> const_or_word
 %type <code_hunk> function_name
+
+%type <str> add_x
+%type <str> mul_x
+%type <str> shift_x
+%type <str> comparisonA_x
+%type <str> comparisonB_x
+%type <str> assignop_x
+%type <str> assignboolop_x
 
 %type <sym> unary
 %type <sym> add
@@ -183,10 +196,10 @@ f
 %type <code_hunk> external_statement
 %type <code_hunk> blank_line
 %type <code_hunk> expr_statement
-%type <code_hunk> ppc_statement
+%type <code_hunk> property_statement
 %type <code_hunk> method_statement
-%type <code_hunk> method_begin
 %type <code_hunk> initializer_expression
+%type <code_hunk> cval
 %type <code_hunk> val
 %type <code_hunk> factor
 %type <code_hunk> term
@@ -213,7 +226,7 @@ f
 %type <code_hunk> hash
 %type <code_hunk> hash_list
 %type <code_hunk> hash_element
-%type <code_hunk> arg_declaritor
+%type <code_hunk> argument_list
 %type <code_hunk> pure_lexpr
 %type <code_hunk> var_lexpr
 %type <code_hunk> array_lexpr
@@ -250,7 +263,7 @@ internal_statement:
   | blank_line
   { $$ = $1 }
   | expr_statement /* Pop the stack before every statement */
-  { $$ = CCH(pop_stack(1), $2); }
+  { $$ = CCH(pop_stack(1), $1); }
   ;
 external_statement_list:
   { $$ = get_nil(); }
@@ -262,11 +275,11 @@ external_statement:
   internal_statement
   { $$ = $1; }
   | method_statement
-  { $$ = CCH(pop_stack(1), $2); }
+  { $$ = CCH(pop_stack(1), $1); }
   | ability_statement
-  { $$ = CCH(pop_stack(1), $2); }
-  | ppc_statement
-  { $$ = CCH(pop_stack(1), $2); }
+  { $$ = CCH(pop_stack(1), $1); }
+  | property_statement
+  { $$ = CCH(pop_stack(1), $1); }
   ;
 
   
@@ -473,63 +486,101 @@ initializer_expression:
   ;
 
 unary:
-  TOKPLUS | TOKMINUS | TOKBANG | TOKTILDE  
+  TOKPLUS 
   {
-    char *t;
-    if(strcmp($1, "+")==0) {t = "+@";}
-    else if(strcmp($1, "-")==0) {t = "-@";}
-    else {t = $1;}
-    $$ = get_sym(t);
+    $$ = get_sym("+@");
   }
-  ;
-
-add:
-  TOKPLUS | TOKMINUS
+  | TOKMINUS
+  {
+    $$ = get_sym("-@");
+  }
+  | TOKBANG 
+  {
+    $$ = get_sym($1);
+  }
+  | TOKTILDE
   {
     $$ = get_sym($1);
   }
   ;
 
+add:
+  add_x
+  {
+    $$ = get_sym($1);
+  }
+  ;
+
+add_x:
+  TOKPLUS {} | TOKMINUS {}
+  ;
+
 mul:
-  TOKSTAR | TOKSLASH | TOKPERCENT
+  mul_x
   {
     $$ = get_sym($1);
   }
   ;
   
+mul_x:
+  TOKSTAR {} | TOKSLASH {} | TOKPERCENT {}
+  ;
+
 shift:
-  TOKSHIFTL | TOKSHIFTR
+  shift_x
   {
     $$ = get_sym($1);
   }
+  ;
+
+shift_x:
+  TOKSHIFTL {} | TOKSHIFTR {}
   ;
 
 comparisonA:
-  TOKGT | TOKLT | TOKGE | TOKLE
+  comparisonA_x
   {
     $$ = get_sym($1);
   }
+  ;
+
+comparisonA_x:
+  TOKGT {} | TOKLT {} | TOKGE {} | TOKLE {}
   ;
 
 comparisonB:
-  TOKEQEQ | TOKNEQ | TOKCOMPARE
+  comparisonB_x
   {
     $$ = get_sym($1);
   }
   ;
 
+comparisonB_x:
+  TOKEQEQ {} | TOKNEQ {} | TOKCOMPARE {}
+  ;
+
+  
 assignop:
-  TOKPLUSEQ | TOKMINUSEQ | TOKSTAREQ | TOKSLASHEQ | TOKPERCENTEQ | TOKAMPEQ | TOKCARATEQ | TOKPIPEEQ | TOKSHIFTLEQ | TOKSHIFTREQ
+  assignop_x
   {
     $$ = get_sym($1);
   }
+  ;
+
+assignop_x:
+  TOKPLUSEQ {} | TOKMINUSEQ {} | TOKSTAREQ {} | TOKSLASHEQ {} | TOKPERCENTEQ {}
+  | TOKAMPEQ {} | TOKCARATEQ {} | TOKPIPEEQ {} | TOKSHIFTLEQ {} | TOKSHIFTREQ {}
   ;
 
 assignboolop:
-  TOKANDEQ | TOKOREQ
+  assignboolop_x
   {
     $$ = get_sym($1);
   }
+  ;
+
+assignboolop_x:
+  TOKANDEQ {} | TOKOREQ {}
   ;
 
 begin:

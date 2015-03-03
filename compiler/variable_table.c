@@ -60,15 +60,16 @@ void pop_scope(void) {
 
 void add_var(symbol sym) {
   variable_table_entry *vte;
+  /* Check that symbol isn't already declared */
   FIND_BY_SYMBOL_ACME_HASH(scope_stack->variable_table, sym, vte);
   if(vte != NULL) {
-    e_warning("variable redeclared");
+    char error[200];
+    e_warning("Variable redeclared, originally declared on line %d", decl_line);
     return;
   }
   NEW_ACME_HASH(variable_table_entry, vte);
-  vte -> sym = sym;
-  vte -> vtd. = strdup(s);
-  ADD_BY_SYMBOL_ACME_HASH(symbol_table, sd);
-}
-  
+  vte->sym = sym;
+  vte->vtd.fp_offset = scope_stack->current_top++;
+  vte->vtd.decl_line = yyget_lineno();
+  ADD_BY_SYMBOL_ACME_HASH(symbol_table, vte);
 }
