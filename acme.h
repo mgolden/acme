@@ -25,13 +25,10 @@ typedef int (*acme_function)(int sp);
 
 /* typedefs for structs that are circular */
 typedef struct _thing thing;
-typedef struct _thing_entry thing_entry;
 typedef struct _ability_list_entry ability_list_entry;
 typedef struct _array array;
-typedef struct _hash_entry hash_entry;
 typedef struct _ability ability;
 typedef struct _ability_list ability_list;
-typedef struct _ability_list_entry ability_list_entry;
 
 DECLARE_ACME_HASH(thing_entry, symbol sym, thing *t);
 DECLARE_ACME_HASH(hash_entry, thing *t1, thing *t);

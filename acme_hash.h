@@ -14,12 +14,16 @@
 #define uthash_free(ptr,sz) GC_free(ptr)
 
 /* Wrap all the uthash internals so they aren't visible from our code */
+
+/* Note: here the proper use in the code is "DECLARE_ACME_HASH(...);" *
+ * We are leaving out the ; here to avoid pedantic errors since an *
+ * extra ; is not allowed outside of a function */
 #define DECLARE_ACME_HASH(typename, keydecl, valdecl) \
 typedef struct _ ## typename { \
   keydecl; \
   valdecl; \
   UT_hash_handle hh; \
-} typename;
+} typename
 /* NB: UT_hash_handle is internal, used only by uthash;
  * makes this structure hashable */
 

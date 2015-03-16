@@ -44,7 +44,7 @@ static signature *sig = NULL;
 %token TOKEOF  0  "end of file"
 
 /* Keywords */
-%token <s> TOXABILITY
+%token <s> TOKABILITY
 %token <s> TOKEND
 %token <s> TOKMETHOD
 %token <s> TOKVAR
@@ -1005,7 +1005,7 @@ pure_lexpr:
   }
   | val TOKDOT const_or_word
   {
-    $$ = CCH(CCH(get_nil(), $1), $3);
+    $$ = CCH(CCH(CCH(get_nil(), $1), $3), new_i_thing(0));
   }
   ;
 
@@ -1035,7 +1035,7 @@ ability_statement:
   ;
 
 ability_begin:
-  TOXABILITY TOKCONST TOKEOL
+  TOKABILITY TOKCONST TOKEOL
   {
     push_scope(NULL);
     push_label($2);

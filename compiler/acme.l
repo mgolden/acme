@@ -1,9 +1,12 @@
 %{
+#include "../acme.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <gc.h>
 
-#include "../acme_types.h"
+#include "code_hunk.h"
 
 #include "y.tab.h"
 
@@ -14,9 +17,9 @@
 /* Return an acme_float */
 #define return_f(tok) {yylval.f=atof(yytext); return(tok);}
 /* Return a string, need to duplicate */
-#define return_s(tok) {yylval.s=strdup(yytext); return(tok);}
+#define return_s(tok) {yylval.s=GC_strdup(yytext); return(tok);}
 /* +1 because we don't want to include the initial colon */
-#define return_sym(tok) {yylval.s=strdup(yytext+1); return(tok);}
+#define return_sym(tok) {yylval.s=GC_strdup(yytext+1); return(tok);}
 
 %}
 %%
