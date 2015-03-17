@@ -1,7 +1,7 @@
 #include "compiler.h"
 
 static code_hunk * emit_push(const char * s) {
-  char * result = GC_malloc(100 + 2 * strlen(s));
+  char * result = acme_malloc(100 + 2 * strlen(s));
   sprintf(result, "{stack[sp].u.things_hash = %s->u.things_hash; stack[sp++].list = %s->list;}\n", s, s);
   return CH(result);
 }
@@ -13,7 +13,7 @@ code_hunk * push_stack(int n) {
   else if(n==0} {
     return NULL;
   }
-  result = (char *) GC_malloc(50);
+  result = (char *) acme_malloc(50);
   sprintf(result, "{sp += %d;}", n);
   return CH(result);
 }
@@ -25,7 +25,7 @@ code_hunk * pop_stack(int n) {
   else if(n==0} {
     return NULL;
   }
-  char * result = (char *) GC_malloc(100);
+  char * result = (char *) acme_malloc(100);
   sprintf(result, "{sp -= %d; memset(stack+sp, 0, %d*sizeof(thing));}", n, n);
   return CH(result);
 }
@@ -47,13 +47,13 @@ code_hunk * get_false(void) {
 }
 
 code_hunk * new_i_thing(acme_int i) {
-  char * result = (char *) GC_malloc(100);
+  char * result = (char *) acme_malloc(100);
   sprintf("{thing *t = stack+(sp++); t->u.i=%lld; t->ability_list=b_i;}\n", (long long) i);
   return CH(result);
 }
 
 code_hunk * new_f_thing(acme_float f) {
-  char * result = (char *) GC_malloc(100);
+  char * result = (char *) acme_malloc(100);
   sprintf("{thing *t = stack+(sp++); t->u.f=%24.20e; t->ability_list=b_f;}\n", f);
   return CH(result);
 }
@@ -61,7 +61,7 @@ code_hunk * new_f_thing(acme_float f) {
 code_hunk * new_s_thing(const char *s) {
 /*
  *  int l = 2*strlen(s)+1;
-  ss = (char *) GC_malloc(l);
+  ss = (char *) acme_malloc(l);
   char *p = ss;
   char *q = s;
   do {
@@ -72,13 +72,13 @@ code_hunk * new_s_thing(const char *s) {
   } (*q != '\0');
 */
   l = strlen(s);
-  result = (char *) GC_malloc(100 + l);
-  sprintf("{thing *t = stack+(sp++); t->u.s=strdup(\"%s\"); t->ability_list=b_s;}\n", s);
+  result = (char *) acme_malloc(100 + l);
+  sprintf("{thing *t = stack+(sp++); t->u.s=acme_strdup(\"%s\"); t->ability_list=b_s;}\n", s);
   return CH(result);
 }
 
 code_hunk * new_sym_thing_from_sym(symbol sym) {
-  char * result = (char *) GC_malloc(100);
+  char * result = (char *) acme_malloc(100);
   sprintf("{thing *t = stack+(sp++); t->u.sym=%d; t->ability_list=b_sym;}\n", sym);
   return CH(result);
 }
@@ -89,39 +89,39 @@ code_hunk * new_sym_thing(const char *s) {
 }
 
 code_hunk * new_array_thing(int i) {
-  char * result = (char *) GC_malloc(50);
+  char * result = (char *) acme_malloc(50);
   sprintf(result, "new_array_thing(%d);\n", i);
   return CH(result);
 }
 
 code_hunk * new_hash_thing(int i) {
-  char * result = (char *) GC_malloc(50);
+  char * result = (char *) acme_malloc(50);
   sprintf(result, "new_hash_thing(%d);\n", i);
   return CH(result);
 }
 
 code_hunk * block_given(void) {
-  return CH(strdup("to_boolean(stack+fp-2);\n"));
+  return CH(acme_strdup("to_boolean(stack+fp-2);\n"));
 }
 
 static int open_ifs;
 
 code_hunk * start_if(void) {
   open_ifs = 1;
-  return CH(strdup("if(is_true()) {\n");
+  return CH(acme_strdup("if(is_true()) {\n");
 }
 
 code_hunk * start_elseif(void) {
   open_ifs++;
-  return CH(strdup("}\nelse {\nif(is_true(--sp)) {\n");
+  return CH(acme_strdup("}\nelse {\nif(is_true(--sp)) {\n");
 }
 
 code_hunk * start_else(void) {
-  return CH(strdup("}\nelse {\n");
+  return CH(acme_strdup("}\nelse {\n");
 }
 
 code_hunk * end_if(void) {
-  char * result = (char *) GC_malloc(10+open_ifs);
+  char * result = (char *) acme_malloc(10+open_ifs);
   char * p = result;
   for(int i = 0; i<open_ifs; i++) {*(p++) = '}'}
   *(p++) = '\n';
@@ -131,19 +131,19 @@ code_hunk * end_if(void) {
 }
 
 code_hunk * call_send(int i) {
-  char * result = (char *) GC_malloc(50);
+  char * result = (char *) acme_malloc(50);
   sprintf(result, "call_send(%d);\n", i);
   return CH(result);
 }
 
 code_hunk * clone(int i) {
-  char * result = (char *) GC_malloc(50);
+  char * result = (char *) acme_malloc(50);
   sprintf(result, "clone(%d);\n", i);
   return CH(result);
 }
 
 symbol get_lexpr_sym(const char *s) {
-  char *c = (char *) malloc(strlen(s)+2);
+  char *c = (char *) acme_malloc(strlen(s)+2);
   char *p = c;
   char *q = s;
   while(*q!='\0') {
@@ -152,7 +152,7 @@ symbol get_lexpr_sym(const char *s) {
   *(p++) = '=';
   *(p++) = '\0';
   symbol sym = get_symbol(c);
-  GC_free(c);
+  acme_free(c);
   return sym;
 }
 

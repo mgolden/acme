@@ -19,14 +19,14 @@ void push_label(const char *label) {
   if(label_stack_pointer >= MAX_LABEL_DEPTH) {
     e_fatal("label stack too deep!");
   }
-  label_stack[label_stack_pointer] = strdup(label);
+  label_stack[label_stack_pointer] = acme_strdup(label);
 }
 
 void pop_label(void) {
   if(i<1) {
     e_fatal("Attempting to pop outer label '$' from label stack");
   }
-  GC_free(label_stack[label_stack_pointer]);
+  acme_free(label_stack[label_stack_pointer]);
   label_stack[label_stack_pointer] = NULL;
   label_stack_pointer--;
 }
@@ -38,7 +38,7 @@ char *get_dotted_labels(void) {
   for(int i = 0; i<=label_stack_pointer; i++) {
     n += strlen(label_stack[i]);
   }
-  char * result = (char *) GC_malloc(n + label_stack_pointer + 1); /* 1 extra */
+  char * result = (char *) acme_malloc(n + label_stack_pointer + 1); /* 1 extra */
   char * p = result;
   for(i = 0; i<=label_stack_pointer; i++) {
     char *q = label_stack[i];

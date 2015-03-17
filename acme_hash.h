@@ -10,8 +10,8 @@
 /* Make sure we're using the libgc version of malloc and free */
 #undef uthash_malloc
 #undef uthash_free
-#define uthash_malloc(sz) GC_malloc(sz)
-#define uthash_free(ptr,sz) GC_free(ptr)
+#define uthash_malloc(sz) acme_malloc(sz)
+#define uthash_free(ptr,sz) acme_free(ptr)
 
 /* Wrap all the uthash internals so they aren't visible from our code */
 
@@ -29,7 +29,7 @@ typedef struct _ ## typename { \
 
 /* Create a new, unfilled ACME_HASH entry */
 #define NEW_ACME_HASH(typename, v) \
-  ;(typename *) v = (typename *) GC_malloc(sizeof(typename)); \
+  ;(typename *) v = (typename *) acme_malloc(sizeof(typename)); \
   v->hh = NULL;
 
 /* Iterate over an ACME_HASH */

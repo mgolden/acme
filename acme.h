@@ -9,6 +9,11 @@
 /* Garbage collector */
 #include <gc.h>
 
+#define acme_malloc GC_malloc
+#define acme_free GC_free
+#define acme_realloc GC_realloc
+#define acme_strdup GC_strdup
+
 /* For defining hashes without bringing in
  * the particulars of the hash library */
 #include "acme_hash.h"

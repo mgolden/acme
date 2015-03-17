@@ -1,14 +1,14 @@
 #include "compiler.h"
 
-/* Note: throughout, we are using GC_free, which may not be necessary
+/* Note: throughout, we are using acme_free, which may not be necessary
  * but should make things easier for GC */
 
 code_hunk *make_code_hunk(char *code, int comexprs, int locvars, int offset) {
-  code_hunk *new = (code_hunk *) GC_malloc(sizeof(code_hunk));
+  code_hunk *new = (code_hunk *) acme_malloc(sizeof(code_hunk));
   new->comexprs = comexprs;
   new->locvars = locvars;
   new->offset = offset;
-  code_list_entry *new_s = (code_list_entry *) GC_malloc(sizeof(code_list_entry));
+  code_list_entry *new_s = (code_list_entry *) acme_malloc(sizeof(code_list_entry));
   new_s->prev = new_s;
   new_s->next = new_s;
   new_s->code = code;
@@ -43,7 +43,7 @@ code_hunk *concatenate_code_hunks(code_hunk *ch1, code_hunk *ch2) {
   }
 
   ch2->list = NULL;
-  GC_free(ch2);
+  acme_free(ch2);
   
   return ch1;
 }
@@ -57,9 +57,9 @@ void free_code_hunk(code_hunk *ch) {
   while(list != NULL) {
     code_list_entry *next = list->next;
     list->next = list->prev = NULL;
-    GC_free(list->code);
-    GC_free(list);
+    acme_free(list->code);
+    acme_free(list);
     list = next;
   }
-  GC_free(ch);
+  acme_free(ch);
 }

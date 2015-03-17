@@ -19,7 +19,7 @@ struct scope {
 static scope * scope_stack;
 
 static scope *new_scope(void) {
-  scope *s = GC_malloc(sizeof(scope));
+  scope *s = acme_malloc(sizeof(scope));
   s->parent = NULL;
   s->fresh = 0;
   s->current_top = 0;
@@ -52,9 +52,9 @@ void pop_scope(void) {
     e_fatal("Attempt to pop bottom of scope stack")
   }
   ITERATE_ACME_HASH(scope_stack->variable_table, variable_table_entry, vte) {
-    GC_free(vte);
+    acme_free(vte);
   }
-  GC_free(scope_stack);
+  acme_free(scope_stack);
   scope_stack = p;
 }
 

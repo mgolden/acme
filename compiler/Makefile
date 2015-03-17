@@ -1,4 +1,4 @@
-CFLAGS = -g -Wall -Wextra -std=C99 -pedantic-errors
+CFLAGS = -g -Wall -Wextra -std=c99 -pedantic-errors
 CC     = gcc $(CFLAGS)
 
 all: acme

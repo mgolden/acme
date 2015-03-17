@@ -7,7 +7,7 @@ void create_thing_entry(thing_entry *thing_table, symbol sym, thing *t) {
 
   HASH_FIND_INT(thing_table, &sym, te);  /* id already in the hash? */
   if(te==NULL) {
-    te = (thing_entry *)GC_malloc(sizeof(thing_entry));
+    te = (thing_entry *)acme_malloc(sizeof(thing_entry));
     te->sym = sym;
     HASH_ADD_INT(thing_table, sym, te);  /* sym is the name of key field */
   }

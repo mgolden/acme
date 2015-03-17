@@ -9,7 +9,7 @@ symbol get_sym(const char *s) {
   if(t==NULL) {
     NEW_ACME_HASH(symbol_definition, sd);
     sd -> sym = sym;
-    sd -> s = strdup(s);
+    sd -> s = acme_strdup(s);
     ADD_BY_SYMBOL_ACME_HASH(symbol_table, sd);
   }
   else {
@@ -28,7 +28,7 @@ symbol get_no_eq_sym(symbol sym) {
   if(t==NULL) {
     e_fatal("attempt to get no_eq_sym for unknown sym");
   }
-  char * s = strdup(t->s);
+  char * s = acme_strdup(t->s);
   int l = strlen(s);
   if(l<2) {
     sprintf(stderr, "symbol: %s\n", s);
@@ -40,6 +40,6 @@ symbol get_no_eq_sym(symbol sym) {
   }
   s[l-1] = '\0';
   symbol sym_no_eq = get_sym(s);
-  GC_free(s);
+  acme_free(s);
   return(sym_no_eq);
 }

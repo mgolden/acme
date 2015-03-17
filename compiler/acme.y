@@ -18,13 +18,13 @@ int main(int argc, char **argv)
 {
   if(argc != 1) usage();
   char *input_file_name = argv[1];
-  char *output_file_name = strdup(input_file_name);
+  char *output_file_name = acme_strdup(input_file_name);
   char *p = strrchr(file_name, ".");
   if(strcmp(p,".ac")!=0) usage();
   *p++ = 'c';
   *p = '\0';
   output_file = fopen(output_file_name, "w");
-  GC_free(output_file_name);
+  acme_free(output_file_name);
   yyin = fopen(input_file_name, "r");
   compiler_init();
   yyparse();
@@ -902,7 +902,7 @@ do:
   {
     char * name = make_block_name();
     sig = new_empty_signature(name);
-    GC_free(name);
+    acme_free(name);
   }
   ;
 
