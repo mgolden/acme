@@ -22,6 +22,9 @@
 #define return_sym(tok) {yylval.s=acme_strdup(yytext+1); return(tok);}
 
 %}
+
+%option outfile="lex.yy.c" header-file="lex.yy.h"
+
 %%
                         /* Keywords */
 ability|abil            return_s_c(TOKABILITY, "ability");

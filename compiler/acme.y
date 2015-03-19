@@ -257,7 +257,7 @@ internal_statement_list:
 internal_statement:
   error TOKEOL
   {
-    e_err("Error matched");
+    e_error("Error matched");
     $$ = NULL;
   }
   | blank_line

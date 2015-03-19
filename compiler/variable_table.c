@@ -63,9 +63,7 @@ void add_var(symbol sym) {
   /* Check that symbol isn't already declared */
   FIND_BY_SYMBOL_ACME_HASH(scope_stack->variable_table, sym, vte);
   if(vte != NULL) {
-    char error[200];
-    sprintf(error, "Variable redeclared, originally declared on line %d", decl_line);
-    e_warning(error);
+    e_warning(error, "Variable redeclared, originally declared on line %d", decl_line);
     return;
   }
   NEW_ACME_HASH(variable_table_entry, vte);
