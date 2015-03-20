@@ -1,7 +1,9 @@
 # generated/compiled files
 acme
 lex.yy.c
+lex.yy.h
 y.dot
 y.tab.c
 y.tab.h
+y.output
 *.o
