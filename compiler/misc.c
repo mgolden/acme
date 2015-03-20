@@ -1,4 +1,4 @@
-#include "compiler.h"
+#include "misc.h"
 
 static code_hunk * emit_push(const char * s) {
   char * result = acme_malloc(100 + 2 * strlen(s));
@@ -77,15 +77,15 @@ code_hunk * new_s_thing(const char *s) {
   return CH(result);
 }
 
-code_hunk * new_sym_thing_from_sym(symbol sym) {
+code_hunk * new_sym_thing_from_symbol(symbol sym) {
   char * result = (char *) acme_malloc(100);
   sprintf("{thing *t = stack+(sp++); t->u.sym=%d; t->ability_list=b_sym;}\n", sym);
   return CH(result);
 }
 
 code_hunk * new_sym_thing(const char *s) {
-  symbol sym = get_sym(s);
-  return new_sym_thing_from_sym(sym);
+  symbol sym = get_symbol(s);
+  return new_sym_thing_from_symbol(sym);
 }
 
 code_hunk * new_array_thing(int i) {
@@ -157,5 +157,5 @@ symbol get_lexpr_sym(const char *s) {
 }
 
 code_hunk * new_lexpr_symbol_thing(const char *s) {
-  return new_sym_thing_from_sym(get_lexpr_symbol(s));
+  return new_sym_thing_from_symbol(get_lexpr_symbol(s));
 }

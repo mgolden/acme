@@ -295,19 +295,19 @@ expr_statement:
 
 word:
   TOKWORD
-  { $$ = get_sym($1); }
+  { $$ = get_symbol($1); }
   ;
 
 const:
   TOKCONST
-  { $$ = get_sym($1); }
+  { $$ = get_symbol($1); }
   ;
 
 const_or_word:
   const
-  { $$ = CCH(get_self(), new_sym_thing_from_sym($1)); }
+  { $$ = CCH(get_self(), new_sym_thing_from_symbol($1)); }
   | word
-  { $$ = CCH(get_self(), new_sym_thing_from_sym($1)); }
+  { $$ = CCH(get_self(), new_sym_thing_from_symbol($1)); }
   ;
 
 property_statement:
@@ -376,7 +376,7 @@ method_name:
 function_name:
   word
   {
-    $$ = get_sym($1);
+    $$ = get_symbol($1);
   }
   | TOKWORD TOKEQ
   {
@@ -384,27 +384,27 @@ function_name:
   }
   | TOKLBRACK TOKRBRACK
   {
-    $$ = get_sym("[]");
+    $$ = get_symbol("[]");
   }
   | TOKLBRACK TOKRBRACK TOKEQ
   {
-    $$ = get_sym("[]=");
+    $$ = get_symbol("[]=");
   }
   | TOKPLUS TOKAT
   {
-    $$ = get_sym("+@");
+    $$ = get_symbol("+@");
   }
   | TOKMINUS TOKAT
   {
-    $$ = get_sym("-@");
+    $$ = get_symbol("-@");
   }
   | TOKTILDE
   {
-    $$ = get_sym($1);
+    $$ = get_symbol($1);
   }
   | TOKBANG
   {
-    $$ = get_sym($1);
+    $$ = get_symbol($1);
   }
   | add
   { $$ = $1; }
@@ -488,26 +488,26 @@ initializer_expression:
 unary:
   TOKPLUS 
   {
-    $$ = get_sym("+@");
+    $$ = get_symbol("+@");
   }
   | TOKMINUS
   {
-    $$ = get_sym("-@");
+    $$ = get_symbol("-@");
   }
   | TOKBANG 
   {
-    $$ = get_sym($1);
+    $$ = get_symbol($1);
   }
   | TOKTILDE
   {
-    $$ = get_sym($1);
+    $$ = get_symbol($1);
   }
   ;
 
 add:
   add_x
   {
-    $$ = get_sym($1);
+    $$ = get_symbol($1);
   }
   ;
 
@@ -518,7 +518,7 @@ add_x:
 mul:
   mul_x
   {
-    $$ = get_sym($1);
+    $$ = get_symbol($1);
   }
   ;
   
@@ -529,7 +529,7 @@ mul_x:
 shift:
   shift_x
   {
-    $$ = get_sym($1);
+    $$ = get_symbol($1);
   }
   ;
 
@@ -540,7 +540,7 @@ shift_x:
 comparisonA:
   comparisonA_x
   {
-    $$ = get_sym($1);
+    $$ = get_symbol($1);
   }
   ;
 
@@ -551,7 +551,7 @@ comparisonA_x:
 comparisonB:
   comparisonB_x
   {
-    $$ = get_sym($1);
+    $$ = get_symbol($1);
   }
   ;
 
@@ -563,7 +563,7 @@ comparisonB_x:
 assignop:
   assignop_x
   {
-    $$ = get_sym($1);
+    $$ = get_symbol($1);
   }
   ;
 
@@ -575,7 +575,7 @@ assignop_x:
 assignboolop:
   assignboolop_x
   {
-    $$ = get_sym($1);
+    $$ = get_symbol($1);
   }
   ;
 
@@ -718,7 +718,7 @@ factor:
   { $$ = $1; }
   | factor mul val
   {
-    $$ = CCH(CCH(CCH(CCH($3, get_nil()), $1), new_sym_thing_from_sym($2)), call_send(1));
+    $$ = CCH(CCH(CCH(CCH($3, get_nil()), $1), new_sym_thing_from_symbol($2)), call_send(1));
   }
   ;
 
@@ -727,7 +727,7 @@ term:
   { $$ = $1; }
   | term add factor
   {
-    $$ = CCH(CCH(CCH(CCH($3, get_nil()), $1), new_sym_thing_from_sym($2)), call_send(1));
+    $$ = CCH(CCH(CCH(CCH($3, get_nil()), $1), new_sym_thing_from_symbol($2)), call_send(1));
   }
   ;
 
@@ -736,7 +736,7 @@ exprI:
   { $$ = $1; }
   | exprI shift term
   {
-    $$ = CCH(CCH(CCH(CCH($3, get_nil()), $1), new_sym_thing_from_sym($2)), call_send(1));
+    $$ = CCH(CCH(CCH(CCH($3, get_nil()), $1), new_sym_thing_from_symbol($2)), call_send(1));
   }
   ;
 
@@ -745,7 +745,7 @@ exprH:
   { $$ = $1; }
   | exprH comparisonA exprI
   {
-    $$ = CCH(CCH(CCH(CCH($3, get_nil()), $1), new_sym_thing_from_sym($2)), call_send(1));
+    $$ = CCH(CCH(CCH(CCH($3, get_nil()), $1), new_sym_thing_from_symbol($2)), call_send(1));
   }
   ;
   
@@ -754,7 +754,7 @@ exprG:
   { $$ = $1; }
   | exprG comparisonB exprH
   {
-    $$ = CCH(CCH(CCH(CCH($3, get_nil()), $1), new_sym_thing_from_sym($2)), call_send(1));
+    $$ = CCH(CCH(CCH(CCH($3, get_nil()), $1), new_sym_thing_from_symbol($2)), call_send(1));
   }
   ;
 

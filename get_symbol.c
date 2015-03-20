@@ -1,8 +1,8 @@
 #include "acme.h"
 
-#include "get_sym.h"
+#include "get_symbol.h"
 
-symbol get_sym(const char *s) {
+symbol get_symbol(const char *s) {
   symbol sym = (symbol) qhashfnv1_64((const void *) s, (size_t)strlen(s));
   symbol_definition *t;
   HASH_FIND_INT(symbol_table, &sym, t);
@@ -39,7 +39,7 @@ symbol get_no_eq_sym(symbol sym) {
     e_fatal("attempt to get no_eq_sym for a sym that doesn't end in '='");
   }
   s[l-1] = '\0';
-  symbol sym_no_eq = get_sym(s);
+  symbol sym_no_eq = get_symbol(s);
   acme_free(s);
   return(sym_no_eq);
 }
