@@ -36,9 +36,6 @@ static void usage(void) {
   exit(1);
 }
 
-
-static signature *sig = NULL;
-
 %}
 
 %token TOKEOF  0  "end of file"
@@ -240,7 +237,7 @@ static signature *sig = NULL;
 start:
   external_statement_list TOKEOF
   {
-    dump_function("main", $1, output_file);
+    dump_function(NULL, $1, output_file);
   }
   ;
 
@@ -335,7 +332,7 @@ shy:
 property_lexpr:
   TOKPROPERTY shy const_or_word_lexpr
   {
-    add_property($3, $1);
+    add_property($3, $2);
     $$ = $3;
   }
   ;
@@ -354,7 +351,7 @@ const_or_word_lexpr:
 method_statement:
   method_line internal_statement_list TOKEND TOKEOL
   {
-    emit_function($2, sig);
+    dump_function($2, output_file);
     $$ = get_nil();
   }
   ;
@@ -369,7 +366,7 @@ method_line:
 method_name:
   TOKMETHOD shy function_name
   {
-    sig = new_empty_signature($3, $2);
+    start_signature($3, $2);
   }
   ;
 
@@ -676,7 +673,7 @@ val:
   }
   | TOKAT TOKLPAREN pure_expr_list TOKRPAREN
   {
-    $$ = CCH($2, clone($2->comexprs));
+    $$ = CCH($3, clone($3->comexprs));
     $$->comexprs = 0;
   }
   | array
@@ -691,15 +688,15 @@ val:
   { $$ = $1; }
   | pure_lexpr
   {
-    $$ = CCH($1, dereference());
+    $$ = dereference($1);
   }
   | array_lexpr
   {
-    $$ = CCH(CCH(new_sym_thing("[]"),get_nil()), call_send(1));
+    $$ = CCH(CCH(CCH($1, new_sym_thing("[]")),get_nil()), call_send(1));
   }
   | const
   {
-    $$ = CCH($1, dereference());
+    $$ = dereference($1);
   }
   | begin TOKEOL internal_statement_list TOKEND
   {
@@ -893,7 +890,7 @@ optional_block:
   | do optional_pipe_param_list TOKEOL internal_statement_list TOKEND
   {
     end_block();
-    dump_function(get_signature_name(sig), $4, output_file);
+    dump_function($4, output_file);
   }
   ;
 
@@ -901,7 +898,7 @@ do:
   TOKDO
   {
     char * name = make_block_name();
-    sig = new_empty_signature(name);
+    start_signature(name, 1);
     acme_free(name);
   }
   ;

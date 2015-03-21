@@ -46,6 +46,11 @@ code_hunk * get_false(void) {
   return emit_push("t_false");
 }
 
+code_hunk * get_self(void) {
+  // self is stored at fp-3
+  return(acme_strdup("stack[sp++] = stack[fp-3];\n"));
+}
+
 code_hunk * new_i_thing(acme_int i) {
   char * result = (char *) acme_malloc(100);
   sprintf("{thing *t = stack+(sp++); t->u.i=%lld; t->ability_list=b_i;}\n", (long long) i);

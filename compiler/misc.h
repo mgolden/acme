@@ -11,6 +11,8 @@ code_hunk * get_nil(void);
 code_hunk * get_true(void);
 code_hunk * get_false(void);
 
+code_hunk * get_self(void);
+
 code_hunk * new_i_thing(acme_int i);
 code_hunk * new_f_thing(acme_float f);
 code_hunk * new_s_thing(const char *s);
