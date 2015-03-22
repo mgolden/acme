@@ -63,3 +63,13 @@ void free_code_hunk(code_hunk *ch) {
   }
   acme_free(ch);
 }
+
+/* Make a new lexpr_hunk.  Note that when you free these, you won't be freeing
+ * the code_hunks they point to, so no need for a particular free method */
+lexpr_hunk *make_lexpr_hunk(code_hunk *self_ch, symbol sym, *subscript_ch) {
+  lexpr_hunk *new = (lexpr_hunk *) acme_malloc(sizeof(lexpr_hunk));
+  new->self_ch = self_ch;
+  new->sym = sym;
+  new->subscript_ch = subscript_ch;
+  return new;
+}

@@ -3,6 +3,7 @@
 
 typedef struct _code_hunk code_hunk;
 typedef struct _code_list_entry code_list_entry;
+typedef struct _lexpr_hunk lexpr_hunk;
 
 /* The code hunks are a circular linked list */
 struct _code_hunk {
@@ -18,9 +19,19 @@ struct _code_list_entry {
   char *code;
 };
 
+/* A lexpr hunk is a code_hunk plus a symbol, used to return from lexpr
+ * non-terminals before the lexpr is either assigned or dereferenced */
+
+struct _lexpr_hunk {
+  code_hunk *self_ch;
+  symbol sym;
+  code_hunk *subscript_ch;
+};
+
 code_hunk *make_code_hunk(char *code, int comexprs, int locvars, int offset);
 code_hunk *concatenate_code_hunks(code_hunk *ch1, code_hunk *ch2);
 void free_code_hunk(code_hunk *ch);
+lexpr_hunk *make_lexpr_hunk(code_hunk *self_ch, symbol sym, *subscript_ch);
 
 /* concatenate code hunks */
 #define CCH(ch1, ch2) \

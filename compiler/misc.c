@@ -161,6 +161,6 @@ symbol get_lexpr_sym(const char *s) {
   return sym;
 }
 
-code_hunk * new_lexpr_symbol_thing(const char *s) {
+code_hunk * new_lexpr_sym_thing(const char *s) {
   return new_sym_thing_from_symbol(get_lexpr_symbol(s));
 }

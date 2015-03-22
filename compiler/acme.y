@@ -224,9 +224,9 @@ static void usage(void) {
 %type <code_hunk> hash_list
 %type <code_hunk> hash_element
 %type <code_hunk> argument_list
-%type <code_hunk> pure_lexpr
-%type <code_hunk> var_lexpr
-%type <code_hunk> array_lexpr
+%type <lexpr_hunk> pure_lexpr
+%type <lexpr_hunk> var_lexpr
+%type <lexpr_hunk> array_lexpr
 %type <code_hunk> ability_statement
 %type <code_hunk> ability_begin
 
@@ -310,7 +310,7 @@ const_or_word:
 property_statement:
   property_lexpr TOKEQ expr TOKEOL
   {
-    $$ = CCH(CCH(CCH(CCH($3, get_nil()), get_self()), add_lexpr_symbol_thing($1)), call_send(1));
+    $$ = assign_lexpr($1, $3);
   }
   | property_lexpr TOKEOL
   {
@@ -333,7 +333,7 @@ property_lexpr:
   TOKPROPERTY shy const_or_word_lexpr
   {
     add_property($3, $2);
-    $$ = $3;
+    $$ = make_lexpr_hunk(get_self(), $3, NULL);
   }
   ;
 
@@ -682,7 +682,7 @@ val:
   { $$ = $1; }
   | unary val
   {
-    $$ = CCH(CCH(CCH(get_nil(), $2), $1), call_send(0));
+    $$ = CCH(CCH(CCH(get_nil(), $2), new_sym_thing_from_symbol($1)), call_send(0));
   }
   | function_call
   { $$ = $1; }
@@ -692,7 +692,7 @@ val:
   }
   | array_lexpr
   {
-    $$ = CCH(CCH(CCH($1, new_sym_thing("[]")),get_nil()), call_send(1));
+    $$ = dereference($1);
   }
   | const
   {
@@ -812,32 +812,32 @@ exprA:
 nonifexpr:
   var_lexpr TOKEQ expr
   {
-    $$ = CCH(CCH($1,$3),assign_var($1));
+    $$ = assign_lexpr($1,$3);
   }
   | pure_lexpr TOKEQ expr
   {
-    $$ = CCH(CCH($1,$3),assign_var($1));
+    $$ = assign_lexpr($1,$3);
   }
   | pure_lexpr assignop expr
   {
-    $$ = CCH(CCH($1,$3),assign_var($1));
+    $$ = assign_lexpr($1,$3);
   }
   | pure_lexpr assignboolop expr
   {
-    $$ = CCH(CCH($1,$3),assign_var($1));
+    $$ = assign_lexpr($1,$3);
   }
   |
   array_lexpr TOKEQ expr
   {
-    $$ = CCH(CCH($1,$3),assign_var($1));
+    $$ = assign_lexpr($1,$3);
   }
   | array_lexpr assignop expr
   {
-    $$ = CCH(CCH($1,$3),assign_array_var($1));
+    $$ = assign_lexpr($1,$3);
   }
   | array_lexpr assignboolop expr
   {
-    $$ = CCH(CCH($1,$3),assign_array_var($1));
+    $$ = assign_lexpr($1,$3);
   }
   | exprA
   { $$ = $1; }
@@ -878,7 +878,13 @@ expr:
 function_call:
   pure_lexpr argument_list optional_block
   {
-    $$ = CCH(CCH(CCH($1,$2),$3),call_send($2->comexprs));
+    $$ = CCH(CCH(CCH(CCH($2, $3), $1->ch), new_sym_thing_from_symbol($1->sym)), call_send($2->comexprs));
+    /* Free the lexpr_hunk, but not the code_hunk it contains */
+    if($1->subscript_ch) {
+      /* You can't have a subscript here */
+      e_fatal("Found non-empty subscript in function call lexpr_hunk");
+    }
+    acme_free($1);
     $$->comexprs = 0;
   }
   ;
@@ -998,11 +1004,11 @@ argument_list:
 pure_lexpr:
   word
   {
-    $$ = get_reference($1);
+    $$ = make_lexpr_hunk(NULL, $1, NULL);
   }
   | val TOKDOT const_or_word
   {
-    $$ = CCH(CCH(CCH(get_nil(), $1), $3), new_i_thing(0));
+    $$ = make_lexpr_hunk($1, $2, NULL);
   }
   ;
 
@@ -1010,14 +1016,15 @@ var_lexpr:
   TOKVAR word
   {
     add_var($2);
-    $$ = get_reference($2);
+    $$ = make_lexpr_hunk(NULL, $2, NULL);
   }
   ;
   
 array_lexpr:
-  word TOKLBRACK expr TOKRBRACK
+  pure_lexpr TOKLBRACK expr TOKRBRACK
   {
-    $$ = CCH($3, get_reference($1));
+    $1->subscript_ch = $3;
+    $$ = $1 ;
   }
   ;
   

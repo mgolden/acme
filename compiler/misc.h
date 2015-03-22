@@ -34,6 +34,6 @@ code_hunk * clone(int i);
 
 symbol get_lexpr_sym(const char *s);
 
-code_hunk * new_lexpr_symbol_thing(const char *s);
+code_hunk * new_lexpr_sym_thing(const char *s);
 
 #endif
