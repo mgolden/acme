@@ -154,10 +154,21 @@ static void usage(void) {
 %type <i> shy
 
 %type <str> property_lexpr
-%type <str> const_or_word_lexpr
+%type <str> const_or_word
+%type <str> function_name
+%type <str> add_s
+%type <str> mul_s
+%type <str> shift_s
+%type <str> comparisonA_s
+%type <str> comparisonB_s
+%type <str> assignop_s
 
-%type <sym> word
-%type <sym> const
+%type <sym> unary
+%type <sym> add
+%type <sym> mul
+%type <sym> shift
+%type <sym> comparisonA
+%type <sym> comparisonB
 
 %type <code_hunk> buck
 %type <code_hunk> nil
@@ -167,25 +178,6 @@ static void usage(void) {
 %type <code_hunk> f
 %type <code_hunk> s
 %type <code_hunk> symbol
-%type <code_hunk> const_or_word
-%type <code_hunk> function_name
-
-%type <str> add_x
-%type <str> mul_x
-%type <str> shift_x
-%type <str> comparisonA_x
-%type <str> comparisonB_x
-%type <str> assignop_x
-%type <str> assignboolop_x
-
-%type <sym> unary
-%type <sym> add
-%type <sym> mul
-%type <sym> shift
-%type <sym> comparisonA
-%type <sym> comparisonB
-%type <sym> assignop
-%type <sym> assignboolop
 
 %type <code_hunk> internal_statement_list
 %type <code_hunk> internal_statement
@@ -290,27 +282,17 @@ expr_statement:
   { $$ = $1; }
   ;
 
-word:
-  TOKWORD
-  { $$ = get_symbol($1); }
-  ;
-
-const:
-  TOKCONST
-  { $$ = get_symbol($1); }
-  ;
-
 const_or_word:
-  const
-  { $$ = CCH(get_self(), new_sym_thing_from_symbol($1)); }
-  | word
-  { $$ = CCH(get_self(), new_sym_thing_from_symbol($1)); }
+  TOKCONST
+  { $$ = $1; }
+  | TOKWORD
+  { $$ = $1; }
   ;
 
 property_statement:
   property_lexpr TOKEQ expr TOKEOL
   {
-    $$ = assign_lexpr($1, $3);
+    $$ = assign_lexpr($1,$2,$3);
   }
   | property_lexpr TOKEOL
   {
@@ -330,21 +312,10 @@ shy:
   ;
 
 property_lexpr:
-  TOKPROPERTY shy const_or_word_lexpr
+  TOKPROPERTY shy const_or_word
   {
     add_property($3, $2);
     $$ = make_lexpr_hunk(get_self(), $3, NULL);
-  }
-  ;
-
-const_or_word_lexpr:
-  TOKCONST
-  {
-    $$ = $1;
-  }
-  | TOKWORD
-  {
-    $$ = $1;
   }
   ;
 
@@ -371,47 +342,53 @@ method_name:
   ;
 
 function_name:
-  word
+  TOKWORD
   {
-    $$ = get_symbol($1);
+    $$ = $1;
   }
   | TOKWORD TOKEQ
   {
-    $$ = get_lexpr_sym($1);
+    size_t l1 = strlen($1);
+    size_t l2 = strlen($2);
+    char *x = acme_malloc(l1 + l2 + 1);
+    strcpy(x, $1);
+    char *xx = x + l1;
+    strcpy(xx, $2);
+    $$ = xx;
   }
   | TOKLBRACK TOKRBRACK
   {
-    $$ = get_symbol("[]");
+    $$ = acme_strdup("[]");
   }
   | TOKLBRACK TOKRBRACK TOKEQ
   {
-    $$ = get_symbol("[]=");
+    $$ = acme_strdup("[]=");
   }
   | TOKPLUS TOKAT
   {
-    $$ = get_symbol("+@");
+    $$ = acme_strdup("+@");
   }
   | TOKMINUS TOKAT
   {
-    $$ = get_symbol("-@");
+    $$ = acme_strdup("-@");
   }
   | TOKTILDE
   {
-    $$ = get_symbol($1);
+    $$ = acme_strdup($1);
   }
   | TOKBANG
   {
-    $$ = get_symbol($1);
+    $$ = acme_strdup($1);
   }
-  | add
+  | add_s
   { $$ = $1; }
-  | mul
+  | mul_s
   { $$ = $1; }
-  | shift
+  | shift_s
   { $$ = $1; }
-  | comparisonA
+  | comparisonA_s
   { $$ = $1; }
-  | comparisonB
+  | comparisonB_s
   { $$ = $1; }
   ;
 
@@ -439,7 +416,7 @@ non_star_signature:
   ;
 
 signature_star_part:
-  TOKSTAR word
+  TOKSTAR TOKWORD
   {
     star_param(sig, $2));
   }
@@ -451,7 +428,7 @@ param_list:
   ;
 
 param:
-  word
+  TOKWORD
   {
     param(sig, $1);
   }
@@ -463,7 +440,7 @@ param_with_default_list:
   ;
 
 param_with_default:
-  word TOKEQ initializer_expression
+  TOKWORD TOKEQ initializer_expression
   { param_with_default(sig, $1, $3)); }
   ;
 
@@ -502,82 +479,66 @@ unary:
   ;
 
 add:
-  add_x
+  add_s
   {
     $$ = get_symbol($1);
   }
   ;
 
-add_x:
+add_s:
   TOKPLUS {} | TOKMINUS {}
   ;
 
 mul:
-  mul_x
+  mul_s
   {
     $$ = get_symbol($1);
   }
   ;
   
-mul_x:
+mul_s:
   TOKSTAR {} | TOKSLASH {} | TOKPERCENT {}
   ;
 
 shift:
-  shift_x
+  shift_s
   {
     $$ = get_symbol($1);
   }
   ;
 
-shift_x:
+shift_s:
   TOKSHIFTL {} | TOKSHIFTR {}
   ;
 
 comparisonA:
-  comparisonA_x
+  comparisonA_s
   {
     $$ = get_symbol($1);
   }
   ;
 
-comparisonA_x:
+comparisonA_s:
   TOKGT {} | TOKLT {} | TOKGE {} | TOKLE {}
   ;
 
 comparisonB:
-  comparisonB_x
+  comparisonB_s
   {
     $$ = get_symbol($1);
   }
   ;
 
-comparisonB_x:
+comparisonB_s:
   TOKEQEQ {} | TOKNEQ {} | TOKCOMPARE {}
   ;
 
   
-assignop:
-  assignop_x
-  {
-    $$ = get_symbol($1);
-  }
-  ;
-
-assignop_x:
-  TOKPLUSEQ {} | TOKMINUSEQ {} | TOKSTAREQ {} | TOKSLASHEQ {} | TOKPERCENTEQ {}
+assignop_s:
+  TOKEQ {}
+  | TOKANDEQ {} | TOKOREQ {}
+  | TOKPLUSEQ {} | TOKMINUSEQ {} | TOKSTAREQ {} | TOKSLASHEQ {} | TOKPERCENTEQ {}
   | TOKAMPEQ {} | TOKCARATEQ {} | TOKPIPEEQ {} | TOKSHIFTLEQ {} | TOKSHIFTREQ {}
-  ;
-
-assignboolop:
-  assignboolop_x
-  {
-    $$ = get_symbol($1);
-  }
-  ;
-
-assignboolop_x:
-  TOKANDEQ {} | TOKOREQ {}
   ;
 
 begin:
@@ -667,10 +628,10 @@ val:
   { $$ = $1; }
   | TOKLPAREN expr TOKRPAREN
   { $$ = $2; }
+  | TOKSELF
+  { $$ = get_self(); }
   | TOKBLOCKGIVEN
-  {
-    $$ = block_given();
-  }
+  { $$ = block_given(); }
   | TOKAT TOKLPAREN pure_expr_list TOKRPAREN
   {
     $$ = CCH($3, clone($3->comexprs));
@@ -681,23 +642,17 @@ val:
   | hash
   { $$ = $1; }
   | unary val
-  {
-    $$ = CCH(CCH(CCH(get_nil(), $2), new_sym_thing_from_symbol($1)), call_send(0));
-  }
+  { $$ = CCH(CCH(CCH(get_nil(), $2), new_sym_thing_from_symbol($1)), call_send(0)); }
   | function_call
   { $$ = $1; }
   | pure_lexpr
-  {
-    $$ = dereference($1);
-  }
+  { $$ = dereference($1); }
   | array_lexpr
-  {
-    $$ = dereference($1);
-  }
-  | const
-  {
-    $$ = dereference($1);
-  }
+  { $$ = dereference($1); }
+  | TOKCONST
+  { $$ = dereference(make_lexpr_hunk(get_self(), $1, NULL)); }
+  | val TOKDOT TOKCONST
+  { $$ = dereference(make_lexpr_hunk($1, $3, NULL)); }
   | begin TOKEOL internal_statement_list TOKEND
   {
     pop_scope();
@@ -812,32 +767,15 @@ exprA:
 nonifexpr:
   var_lexpr TOKEQ expr
   {
-    $$ = assign_lexpr($1,$3);
+    $$ = assign_lexpr($1,$2,$3);
   }
-  | pure_lexpr TOKEQ expr
+  | pure_lexpr assignop_s expr
   {
-    $$ = assign_lexpr($1,$3);
+    $$ = assign_lexpr($1,$2,$3);
   }
-  | pure_lexpr assignop expr
+  | array_lexpr assignop_s expr
   {
-    $$ = assign_lexpr($1,$3);
-  }
-  | pure_lexpr assignboolop expr
-  {
-    $$ = assign_lexpr($1,$3);
-  }
-  |
-  array_lexpr TOKEQ expr
-  {
-    $$ = assign_lexpr($1,$3);
-  }
-  | array_lexpr assignop expr
-  {
-    $$ = assign_lexpr($1,$3);
-  }
-  | array_lexpr assignboolop expr
-  {
-    $$ = assign_lexpr($1,$3);
+    $$ = assign_lexpr($1,$2,$3);
   }
   | exprA
   { $$ = $1; }
@@ -878,14 +816,15 @@ expr:
 function_call:
   pure_lexpr argument_list optional_block
   {
-    $$ = CCH(CCH(CCH(CCH($2, $3), $1->ch), new_sym_thing_from_symbol($1->sym)), call_send($2->comexprs));
+    $$ = CCH(CCH(CCH(CCH($2, $3), $1->self_ch), new_sym_thing($1->name)), call_send($2->comexprs));
+    $$->comexprs = 0;
     /* Free the lexpr_hunk, but not the code_hunk it contains */
     if($1->subscript_ch) {
       /* You can't have a subscript here */
       e_fatal("Found non-empty subscript in function call lexpr_hunk");
     }
+    acme_free($1->name);
     acme_free($1);
-    $$->comexprs = 0;
   }
   ;
 
@@ -1002,18 +941,18 @@ argument_list:
   ;
 
 pure_lexpr:
-  word
+  TOKWORD
   {
     $$ = make_lexpr_hunk(NULL, $1, NULL);
   }
-  | val TOKDOT const_or_word
+  | val TOKDOT TOKWORD
   {
     $$ = make_lexpr_hunk($1, $2, NULL);
   }
   ;
 
 var_lexpr:
-  TOKVAR word
+  TOKVAR TOKWORD
   {
     add_var($2);
     $$ = make_lexpr_hunk(NULL, $2, NULL);

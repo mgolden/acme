@@ -146,21 +146,3 @@ code_hunk * clone(int i) {
   sprintf(result, "clone(%d);\n", i);
   return CH(result);
 }
-
-symbol get_lexpr_sym(const char *s) {
-  char *c = (char *) acme_malloc(strlen(s)+2);
-  char *p = c;
-  char *q = s;
-  while(*q!='\0') {
-    *(p++) = *(q++);
-  }
-  *(p++) = '=';
-  *(p++) = '\0';
-  symbol sym = get_symbol(c);
-  acme_free(c);
-  return sym;
-}
-
-code_hunk * new_lexpr_sym_thing(const char *s) {
-  return new_sym_thing_from_symbol(get_lexpr_symbol(s));
-}

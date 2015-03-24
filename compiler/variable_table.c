@@ -58,8 +58,9 @@ void pop_scope(void) {
   scope_stack = p;
 }
 
-void add_var(symbol sym) {
+void add_var(const char *name) {
   variable_table_entry *vte;
+  symbol sym = get_symbol(name);
   /* Check that symbol isn't already declared */
   FIND_BY_SYMBOL_ACME_HASH(scope_stack->variable_table, sym, vte);
   if(vte != NULL) {
@@ -71,4 +72,12 @@ void add_var(symbol sym) {
   vte->vtd.fp_offset = scope_stack->current_top++;
   vte->vtd.decl_line = yyget_lineno();
   ADD_BY_SYMBOL_ACME_HASH(symbol_table, vte);
+}
+
+int get_var_fp_offset(const char *name) {
+  variable_table_entry *vte;
+  symbol sym = get_symbol(name);
+  FIND_BY_SYMBOL_ACME_HASH(scope_stack->variable_table, sym, vte);
+  if(vte == NULL) {return 0; /* 0 being an illegal fp offset */}
+  return {vte -> fp_offset;}
 }

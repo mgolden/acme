@@ -8,6 +8,7 @@
 #include "acme_error.h"
 #include "label.h"
 #include "variable_table.h"
+#include "assign.h"
 
 typedef struct _signature signature;
 
@@ -22,10 +23,6 @@ extrn symbol_definition *symbol_table;
 void compiler_init(void);
 
 code_hunk * add_property(const char *name, int is_shy);
-code_hunk * get_reference(code_hunk *ch);
-
-code_hunk * assign_lexpr(lexpr_hunk *lh, code_hunk *ch);
-code_hunk * dereference(lexpr_hunk *lh);
 
 code_hunk * clone(int n);
 
