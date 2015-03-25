@@ -7,20 +7,38 @@ code_hunk * assign_lexpr(lexpr_hunk *lh, const char *assignop, code_hunk *ch) {
   op[3] = '\0';
   /* If there is no explicit self, we need to search for the variable in several places */
   name = lh->name;
+  /* First as a local var */
   fp_offset = get_var_fp_offset(name);
-  if(fp_offset == 0) {
+  if(fp_offset != 0) {
+  }
+  else {
+    symbol to_call = 0;
     /* Look for shy variable */
     dotted_labels = get_dotted_labels();
     int n1 = strlen(dotted_lables);
     int n2 = strlen(name);
-    char *shy_name = acme_malloc(n1 + n2 + 2);
-    strcpy(shy_name, dotted_labels);
-    char *sn2 = shy_name + n1;
-    *(sn2++) = '.';
+    char *shy_assign_str = acme_malloc(n1 + n2 + 3);
+    char *str2 = shy_assign_str;
+    strcpy(str2, dotted_labels);
+    acme_free(dotted_labels); /* caller must free */
+    str2 += n1;
+    *(str2++) = '.';
     strcpy(sn2, name);
-    // Try to find shy name
-    if(!found) {
-      // Try to find name
+    str2 += n2;
+    *(str2++) = '=';
+    *str2 = '\0';
+    symbol shy_assign_sym = get_symbol(shy_assign_name);
+    if(function_exists(shy_assign_sym)) {
+      to_call = shy_assign_sym;
+      acme_free(shy_name);
+    }
+    else {
+      char *assign_str = acme_malloc(n2+2);
+      str2 = assign_str;
+      strcpy(assign_str, name);
+      *(str2++) = '=';
+      *str2 = '\0';
+      to_call = get_symbol(assign_name);
     }
   }
   /* Make the code_hunk for us to return */

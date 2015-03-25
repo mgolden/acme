@@ -23,7 +23,7 @@ void push_label(const char *label) {
 }
 
 void pop_label(void) {
-  if(i<1) {
+  if(label_stack_pointer<1) {
     e_fatal("Attempting to pop outer label '$' from label stack");
   }
   acme_free(label_stack[label_stack_pointer]);
