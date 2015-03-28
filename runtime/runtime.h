@@ -9,7 +9,7 @@
 #define extrn
 #endif
 
-extrn thing *stack;
+extrn stack_element *stack;
 extrn ability_list *b_buck, *b_nil, *b_true, *b_false, *b_i, *b_f, *b_s, *b_sym, *b_hash, *b_array;
 extrn thing *t_buck, *t_nil, *t_true, *t_false;
 extrn int sp;

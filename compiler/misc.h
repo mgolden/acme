@@ -21,6 +21,10 @@ code_hunk * new_sym_thing(const char *s);
 code_hunk * new_array_thing(int i);
 code_hunk * new_hash_thing(int i);
 
+code_hunk * emit_unop_call(symbol op, code_hunk *e);
+code_hunk * emit_binop_call(code_hunk *e1, symbol op, code_hunk *e2);
+
+code_hunk * get_empty_block(void);
 code_hunk * block_given(void);
 
 code_hunk * start_if(void);

@@ -25,8 +25,8 @@ typedef double acme_float;
 /* A symbol is a 64 bit integer */
 typedef int64_t symbol;
 
-/* A function, operates on the stack, takes the sp as an argument */
-typedef int (*acme_function)(int sp);
+/* A function, operates on the stack, takes the fp as an argument */
+typedef int (*acme_fcn_ptr)(int fp);
 
 /* typedefs for structs that are circular */
 typedef struct _thing thing;
@@ -34,6 +34,8 @@ typedef struct _ability_list_entry ability_list_entry;
 typedef struct _array array;
 typedef struct _ability ability;
 typedef struct _ability_list ability_list;
+typedef struct _block_base block_base;
+typedef union _stack_element stack_element;
 
 DECLARE_ACME_HASH(thing_entry, symbol sym, thing *t);
 DECLARE_ACME_HASH(hash_entry, thing *t1, thing *t);
@@ -60,7 +62,7 @@ struct _thing {
     /* a hash */
     hash_entry *h;
   } u;
-  ability_list *list;
+  ability_list *a_list;
 };
 
 struct _ability_list {
@@ -78,6 +80,16 @@ struct _ability {
 struct _ability_list_entry {
   ability_list *next;
   ability *b;
+};
+
+struct _block_base {
+  acme_int block_fp;
+  acme_fcn_ptr block_fcn_ptr;
+};
+
+union _stack_element {
+  thing t;
+  block_base b;
 };
 
 #define MAX_STACK_DEPTH 10000

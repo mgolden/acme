@@ -2,7 +2,7 @@
 
 static code_hunk * emit_push(const char * s) {
   char * result = acme_malloc(100 + 2 * strlen(s));
-  sprintf(result, "{stack[sp].u.things_hash = %s->u.things_hash; stack[sp++].list = %s->list;}\n", s, s);
+  sprintf(result, "{stack_entry *se = stack+(sp++); se->t.u.things_hash = %s->u.things_hash; se->t.a_list = %s->a_list;}\n", s, s);
   return CH(result);
 }
 
@@ -26,7 +26,7 @@ code_hunk * pop_stack(int n) {
     return NULL;
   }
   char * result = (char *) acme_malloc(100);
-  sprintf(result, "{sp -= %d; memset(stack+sp, 0, %d*sizeof(thing));}", n, n);
+  sprintf(result, "{sp -= %d; memset(stack+sp, 0, %d*sizeof(stack_element));}", n, n);
   return CH(result);
 }
 
@@ -53,13 +53,13 @@ code_hunk * get_self(void) {
 
 code_hunk * new_i_thing(acme_int i) {
   char * result = (char *) acme_malloc(100);
-  sprintf("{thing *t = stack+(sp++); t->u.i=%lld; t->ability_list=b_i;}\n", (long long) i);
+  sprintf("{stack_entry *se = stack+(sp++); se->t.u.i=%lld; se->t.a_list=b_i;}\n", (long long) i);
   return CH(result);
 }
 
 code_hunk * new_f_thing(acme_float f) {
   char * result = (char *) acme_malloc(100);
-  sprintf("{thing *t = stack+(sp++); t->u.f=%24.20e; t->ability_list=b_f;}\n", f);
+  sprintf("{stack_entry *se = stack+(sp++); se->t.u.f=%24.20e; se->t.a_list=b_f;}\n", f);
   return CH(result);
 }
 
@@ -78,13 +78,13 @@ code_hunk * new_s_thing(const char *s) {
 */
   l = strlen(s);
   result = (char *) acme_malloc(100 + l);
-  sprintf("{thing *t = stack+(sp++); t->u.s=acme_strdup(\"%s\"); t->ability_list=b_s;}\n", s);
+  sprintf("{stack_entry *se = stack+(sp++); se->t.u.s=acme_strdup(\"%s\"); se->t.a_list=b_s;}\n", s);
   return CH(result);
 }
 
 code_hunk * new_sym_thing_from_symbol(symbol sym) {
   char * result = (char *) acme_malloc(100);
-  sprintf("{thing *t = stack+(sp++); t->u.sym=%d; t->ability_list=b_sym;}\n", sym);
+  sprintf("{stack_entry *se = stack+(sp++); se->t.u.sym=%d; se->t.a_list=b_sym;}\n", sym);
   return CH(result);
 }
 
@@ -105,8 +105,19 @@ code_hunk * new_hash_thing(int i) {
   return CH(result);
 }
 
+
+code_hunk * emit_unop_call(symbol op, code_hunk *e){
+  return CCH(CCH(CCH(get_empty_block(), e), new_sym_thing_from_symbol(op)), call_send(0));
+}
+
+code_hunk * emit_binop_call(code_hunk *e1, symbol op, code_hunk *e2){
+  return CCH(CCH(CCH(CCH(e2, get_empty_block()), e1), new_sym_thing_from_symbol(op)), call_send(1));
+}
+
+code_hunk * get_empty_block(void) {
+  
 code_hunk * block_given(void) {
-  return CH(acme_strdup("to_boolean(stack+fp-2);\n"));
+  return CH(acme_strdup("if(stack[fp-2].b.block_function_ptr == NULL) {get_false();} else {get_true();}\n"));
 }
 
 static int open_ifs;
@@ -118,7 +129,7 @@ code_hunk * start_if(void) {
 
 code_hunk * start_elseif(void) {
   open_ifs++;
-  return CH(acme_strdup("}\nelse {\nif(is_true(--sp)) {\n");
+  return CH(acme_strdup("}\nelse {\nif(is_true()) {\n");
 }
 
 code_hunk * start_else(void) {

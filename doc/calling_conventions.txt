@@ -9,12 +9,11 @@ l2
 l1
 args (array)
 a4 (copy or default)
-a3 (copy or default)
-OLD FP  <- FP
+a3 (copy or default) <- fp
 n_args
 function name symbol
 self
-block (or nil)
+block (or empty_block, NB: not a thing)
 arg1
 arg2
 arg3 (Not used in function)
@@ -29,7 +28,7 @@ Just prior to call:
 n_args (5 in this case)
 function name symbol
 self
-block (or nil)
+block (or empty_block, NB: not a thing)
 arg1
 arg2
 arg3

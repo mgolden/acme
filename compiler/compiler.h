@@ -9,6 +9,7 @@
 #include "label.h"
 #include "variable_table.h"
 #include "assign.h"
+#include "block.h"
 
 typedef struct _signature signature;
 
@@ -30,6 +31,7 @@ void start_signature(char *name, int is_shy);
 code_hunk * param(symbol sym);
 code_hunk * param_with_default(symbol sym, const char * p);
 code_hunk * star_param(symbol sym);
+
 void dump_function(code_hunk *ch, FILE *output_file);
 
 #endif

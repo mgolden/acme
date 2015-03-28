@@ -642,7 +642,7 @@ val:
   | hash
   { $$ = $1; }
   | unary val
-  { $$ = CCH(CCH(CCH(get_nil(), $2), new_sym_thing_from_symbol($1)), call_send(0)); }
+  { $$ = emit_unop_call($1, $2); }
   | function_call
   { $$ = $1; }
   | pure_lexpr
@@ -661,7 +661,7 @@ val:
   }
   | TOKYIELD argument_list
   {
-    $$ = CCH(CCH(CCH($2, call_block()), pop_stack($2->comexprs)), possible_return_from_block());
+    $$ = CCH($2, emit_yield($2->comexprs));
   }
   ;
 
@@ -670,7 +670,7 @@ factor:
   { $$ = $1; }
   | factor mul val
   {
-    $$ = CCH(CCH(CCH(CCH($3, get_nil()), $1), new_sym_thing_from_symbol($2)), call_send(1));
+    $$ = emit_binop_call($1, $2, $3);
   }
   ;
 
@@ -679,7 +679,7 @@ term:
   { $$ = $1; }
   | term add factor
   {
-    $$ = CCH(CCH(CCH(CCH($3, get_nil()), $1), new_sym_thing_from_symbol($2)), call_send(1));
+    $$ = emit_binop_call($1, $2, $3);
   }
   ;
 
@@ -688,7 +688,7 @@ exprI:
   { $$ = $1; }
   | exprI shift term
   {
-    $$ = CCH(CCH(CCH(CCH($3, get_nil()), $1), new_sym_thing_from_symbol($2)), call_send(1));
+    $$ = emit_binop_call($1, $2, $3);
   }
   ;
 
@@ -697,7 +697,7 @@ exprH:
   { $$ = $1; }
   | exprH comparisonA exprI
   {
-    $$ = CCH(CCH(CCH(CCH($3, get_nil()), $1), new_sym_thing_from_symbol($2)), call_send(1));
+    $$ = emit_binop_call($1, $2, $3);
   }
   ;
   
@@ -706,7 +706,7 @@ exprG:
   { $$ = $1; }
   | exprG comparisonB exprH
   {
-    $$ = CCH(CCH(CCH(CCH($3, get_nil()), $1), new_sym_thing_from_symbol($2)), call_send(1));
+    $$ = emit_binop_call($1, $2, $3);
   }
   ;
 
@@ -715,7 +715,7 @@ exprF:
   { $$ = $1; }
   | exprF TOKAMP exprG
   {
-    $$ = CCH(CCH(CCH(CCH($3, get_nil()), $1), new_sym_thing($2)), call_send(1));
+    $$ = emit_binop_call($1, $2, $3);
   }
   ;
 
@@ -724,7 +724,7 @@ exprE:
   { $$ = $1; }
   | exprE TOKCARAT exprF
   {
-    $$ = CCH(CCH(CCH(CCH($3, get_nil()), $1), new_sym_thing($2)), call_send(1));
+    $$ = emit_binop_call($1, $2, $3);
   }
   ;
   
@@ -733,7 +733,7 @@ exprD:
   { $$ = $1; }
   | exprD TOKPIPE exprE
   {
-    $$ = CCH(CCH(CCH(CCH($3, get_nil()), $1), new_sym_thing($2)), call_send(1));
+    $$ = emit_binop_call($1, $2, $3);
   }
   ;
   
@@ -742,7 +742,7 @@ exprC:
   { $$ = $1; }
   | exprC TOKAND exprD
   {
-    $$ = CCH(CCH(CCH(CCH($3, get_nil()), $1), new_sym_thing($2)), call_send(1));
+    $$ = emit_binop_call($1, $2, $3);
   }
   ;
 
@@ -751,7 +751,7 @@ exprB:
   { $$ = $1; }
   | exprB TOKOR exprC
   {
-    $$ = CCH(CCH(CCH(CCH($3, get_nil()), $1), new_sym_thing($2)), call_send(1));
+    $$ = emit_binop_call($1, $2, $3);
   }
   ;
 
@@ -830,12 +830,11 @@ function_call:
 
 optional_block:
   {
-    $$ = get_nil();
+    $$ = get_empty_block();
   }
   | do optional_pipe_param_list TOKEOL internal_statement_list TOKEND
   {
-    end_block();
-    dump_function($4, output_file);
+    dump_function(CCH($4, emit_end_block()), output_file);
   }
   ;
 
