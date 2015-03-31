@@ -156,19 +156,13 @@ static void usage(void) {
 %type <str> property_lexpr
 %type <str> const_or_word
 %type <str> function_name
-%type <str> add_s
-%type <str> mul_s
-%type <str> shift_s
-%type <str> comparisonA_s
-%type <str> comparisonB_s
-%type <str> assignop_s
-
-%type <sym> unary
-%type <sym> add
-%type <sym> mul
-%type <sym> shift
-%type <sym> comparisonA
-%type <sym> comparisonB
+%type <str> add
+%type <str> mul
+%type <str> shift
+%type <str> comparisonA
+%type <str> comparisonB
+%type <str> assignop
+%type <str> unary
 
 %type <code_hunk> buck
 %type <code_hunk> nil
@@ -190,6 +184,7 @@ static void usage(void) {
 %type <code_hunk> initializer_expression
 %type <code_hunk> cval
 %type <code_hunk> val
+%type <code_hunk> uval
 %type <code_hunk> factor
 %type <code_hunk> term
 %type <code_hunk> exprI
@@ -358,37 +353,37 @@ function_name:
   }
   | TOKLBRACK TOKRBRACK
   {
-    $$ = acme_strdup("[]");
+    $$ = "[]";
   }
   | TOKLBRACK TOKRBRACK TOKEQ
   {
-    $$ = acme_strdup("[]=");
+    $$ = "[]=";
   }
   | TOKPLUS TOKAT
   {
-    $$ = acme_strdup("+@");
+    $$ = "+@";
   }
   | TOKMINUS TOKAT
   {
-    $$ = acme_strdup("-@");
+    $$ = "-@";
   }
   | TOKTILDE
   {
-    $$ = acme_strdup($1);
+    $$ = $1;
   }
   | TOKBANG
   {
-    $$ = acme_strdup($1);
+    $$ = $1;
   }
-  | add_s
+  | add
   { $$ = $1; }
-  | mul_s
+  | mul
   { $$ = $1; }
-  | shift_s
+  | shift
   { $$ = $1; }
-  | comparisonA_s
+  | comparisonA
   { $$ = $1; }
-  | comparisonB_s
+  | comparisonB
   { $$ = $1; }
   ;
 
@@ -398,20 +393,20 @@ signature:
   ;
 
 non_empty_signature:
-  non_star_signature
+  param_list
   {}
-  | non_star_signature TOKCOMMA signature_star_part
+  | param_list TOKCOMMA extra_signature
   {}
-  | signature_star_part
+  | extra_signature
   {}
   ;
 
-non_star_signature:
-  param_list
+extra_signature:
+  param_with_default_list
   {}
-  | param_list TOKCOMMA param_with_default_list
+  | param_with_default_list TOKCOMMA signature_star_part
   {}
-  | param_with_default_list
+  | signature_star_part
   {}
   ;
 
@@ -462,83 +457,54 @@ initializer_expression:
 unary:
   TOKPLUS 
   {
-    $$ = get_symbol("+@");
+    $$ = "+@";
   }
   | TOKMINUS
   {
-    $$ = get_symbol("-@");
+    $$ = "-@";
   }
   | TOKBANG 
   {
-    $$ = get_symbol($1);
+    $$ = $1;
   }
   | TOKTILDE
   {
-    $$ = get_symbol($1);
+    $$ = $1;
   }
   ;
 
 add:
-  add_s
-  {
-    $$ = get_symbol($1);
-  }
+  TOKPLUS { $$ = $1; } | TOKMINUS { $$ = $1; }
   ;
 
-add_s:
-  TOKPLUS {} | TOKMINUS {}
-  ;
 
 mul:
-  mul_s
-  {
-    $$ = get_symbol($1);
-  }
+  TOKSTAR { $$ = $1; } | TOKSLASH { $$ = $1; } | TOKPERCENT { $$ = $1; }
   ;
-  
-mul_s:
-  TOKSTAR {} | TOKSLASH {} | TOKPERCENT {}
-  ;
+
 
 shift:
-  shift_s
-  {
-    $$ = get_symbol($1);
-  }
+  TOKSHIFTL { $$ = $1; } | TOKSHIFTR { $$ = $1; }
   ;
 
-shift_s:
-  TOKSHIFTL {} | TOKSHIFTR {}
-  ;
 
 comparisonA:
-  comparisonA_s
-  {
-    $$ = get_symbol($1);
-  }
+  TOKGT { $$ = $1; } | TOKLT { $$ = $1; } | TOKGE { $$ = $1; } | TOKLE { $$ = $1; }
   ;
 
-comparisonA_s:
-  TOKGT {} | TOKLT {} | TOKGE {} | TOKLE {}
-  ;
 
 comparisonB:
-  comparisonB_s
-  {
-    $$ = get_symbol($1);
-  }
-  ;
-
-comparisonB_s:
-  TOKEQEQ {} | TOKNEQ {} | TOKCOMPARE {}
+  TOKEQEQ { $$ = $1; } | TOKNEQ { $$ = $1; } | TOKCOMPARE { $$ = $1; }
   ;
 
   
-assignop_s:
-  TOKEQ {}
-  | TOKANDEQ {} | TOKOREQ {}
-  | TOKPLUSEQ {} | TOKMINUSEQ {} | TOKSTAREQ {} | TOKSLASHEQ {} | TOKPERCENTEQ {}
-  | TOKAMPEQ {} | TOKCARATEQ {} | TOKPIPEEQ {} | TOKSHIFTLEQ {} | TOKSHIFTREQ {}
+assignop:
+  TOKEQ { $$ = $1; }
+  | TOKANDEQ { $$ = $1; } | TOKOREQ { $$ = $1; }
+  | TOKPLUSEQ { $$ = $1; } | TOKMINUSEQ { $$ = $1; }
+  | TOKSTAREQ { $$ = $1; } | TOKSLASHEQ { $$ = $1; } | TOKPERCENTEQ { $$ = $1; }
+  | TOKAMPEQ { $$ = $1; } | TOKCARATEQ { $$ = $1; }
+  | TOKPIPEEQ { $$ = $1; } | TOKSHIFTLEQ { $$ = $1; } | TOKSHIFTREQ { $$ = $1; }
   ;
 
 begin:
@@ -641,8 +607,6 @@ val:
   { $$ = $1; }
   | hash
   { $$ = $1; }
-  | unary val
-  { $$ = emit_unop_call($1, $2); }
   | function_call
   { $$ = $1; }
   | pure_lexpr
@@ -665,10 +629,17 @@ val:
   }
   ;
 
-factor:
+uval:
   val
   { $$ = $1; }
-  | factor mul val
+  | unary val
+  { $$ = emit_unop_call($1, $2); }
+  ;
+
+factor:
+  uval
+  { $$ = $1; }
+  | factor mul uval
   {
     $$ = emit_binop_call($1, $2, $3);
   }
@@ -769,11 +740,11 @@ nonifexpr:
   {
     $$ = assign_lexpr($1,$2,$3);
   }
-  | pure_lexpr assignop_s expr
+  | pure_lexpr assignop expr
   {
     $$ = assign_lexpr($1,$2,$3);
   }
-  | array_lexpr assignop_s expr
+  | array_lexpr assignop expr
   {
     $$ = assign_lexpr($1,$2,$3);
   }
