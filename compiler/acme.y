@@ -13,10 +13,12 @@ int yywrap()
 
 static char *input_file_name;
 static FILE *output_file;
+static int n_blocks;
 
 int main(int argc, char **argv)
 {
   if(argc != 1) usage();
+  n_blocks = 0;
   char *input_file_name = argv[1];
   char *output_file_name = acme_strdup(input_file_name);
   char *p = strrchr(file_name, ".");
@@ -812,7 +814,8 @@ optional_block:
 do:
   TOKDO
   {
-    char * name = make_block_name();
+    n_blocks++;
+    char * name = make_block_name(input_file_name, n_blocks);
     start_signature(name, 1);
     acme_free(name);
   }

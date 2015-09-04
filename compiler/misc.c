@@ -157,3 +157,11 @@ code_hunk * clone(int i) {
   sprintf(result, "clone(%d);\n", i);
   return CH(result);
 }
+
+char * make_block_name(const char * file_name, int n) {
+    int l = strlen(file_name);
+    char * result = (char *) acme_malloc(10 + l);
+    strcpy(result, file_name);
+    sprintf(result+l, "%d", n);
+    return result;
+}

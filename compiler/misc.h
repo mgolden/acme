@@ -36,4 +36,6 @@ code_hunk * call_send(int i);
 
 code_hunk * clone(int i);
 
+char * make_block_name(const char * file_name, int n);
+
 #endif
