@@ -74,9 +74,8 @@ void add_var(const char *name) {
   ADD_BY_SYMBOL_ACME_HASH(symbol_table, vte);
 }
 
-int get_var_fp_offset(const char *name) {
+int get_var_fp_offset(symbol sym) {
   variable_table_entry *vte;
-  symbol sym = get_symbol(name);
   FIND_BY_SYMBOL_ACME_HASH(scope_stack->variable_table, sym, vte);
   if(vte == NULL) {return 0; /* 0 being an illegal fp offset */}
   return {vte -> fp_offset;}
