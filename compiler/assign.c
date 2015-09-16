@@ -1,32 +1,46 @@
 #include "compiler.h"
 
+static code_hunk * push_var_in_context(lexpr_hunk *lh);
+
 code_hunk * assign_lexpr(lexpr_hunk *lh, const char *assignop, code_hunk *ch) {
   /* Get the op, that is, the operation before the = */
   char op[4];
   strncpy(op, assignop, 4);
   op[3] = '\0';
+  /* remove the = */
+  int l_op = strlen(op);
+  if(l_op>1 && op[--l_op]=='=') {op[l_op] = '\0';}
+  symbol op_sym;
+  if(l_op>0) {
+    op_sym = get_symbol(op);
+  }
+  else {
+    op_sym = (sym) 0;
+  }
+  /* Push the result of the right-hand code hunk */
+  code_hunk *ret = ch;
+  push_var_in_context(lh);
+  /* Make the code_hunk for us to return */
+  code_hunk *ret = CCH(CH("{\n"),lh->self_ch));
+  lh->self_ch = NULL;
+  ret = CCH(ret,CH(acme_strdup("\nthing *self=stack[sp];\nstack[sp--]=NULL\n;")));
+  if(op[0] != '\0') {
+    /* Not a pure = assignment */
+    
+  
+}
+
+static code_hunk * push_var_in_context(lexpr_hunk *lh) {
+  /* Find the object being assigned */
   /* If there is no explicit self, we need to search for the variable in several places */
   if(lh->self_ch == NULL) {
     /* First as a local var */
     fp_offset = get_var_fp_offset(lh->sym);
     if(fp_offset != 0) {
-      if(subscript_ch == NULL) {
-        acme_free(lh);
-        char *subscr = acme_malloc(10);
-        sprintf(subscr, "%d", fp_offset);
-        code_hunk *ret = CCH(CH("{stack["), CH(subscr));
-        CCH(ret, CH("]"));
-        CCH(ret, CH(assignop));
-        CCH(ret, CH("stack[sp];}\n"));
-        acme_free(subscr);
-        return(ret);
-      }
-      /* Local array subscript */
-      else {
-        /* NOT READY */
-        sprintf(stderr, "NOT READY\n");
-        exit(1);
-      }
+      /* Found! Push the local var */
+      char local_str[100];
+      sprintf(local_str, "stack[sp++]=stack[fp+%d];\n", fp_offset);
+      CCH (ret, CH(acme_strdup(local_str)));
     }
     else {
       symbol to_call = 0;
@@ -59,16 +73,8 @@ code_hunk * assign_lexpr(lexpr_hunk *lh, const char *assignop, code_hunk *ch) {
         to_call = get_symbol(assign_name);
       }
     }
-  /* Make the code_hunk for us to return */
-  code_hunk *ret = CCH(CH("{\n"),lh->self_ch));
-  lh->self_ch = NULL;
-  ret = CCH(ret,CH("\nthing *self=stack[sp];\nstack[sp--]=NULL\n;"));
-  CCH(
-  if(op[0] != '\0') {
-    /* Not a pure = assignment */
-    
-  
+  }
 }
-
+    
 code_hunk * dereference(lexpr_hunk *lh){
 }

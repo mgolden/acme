@@ -4,6 +4,10 @@
 
 symbol get_symbol(const char *s) {
   symbol sym = (symbol) qhashfnv1_64((const void *) s, (size_t)strlen(s));
+  if(sym == 0) {
+    sprintf(stderr, "String \"%s\" hashed to 0!", s);
+    e_fatal("string hashed to 0");
+  }
   symbol_definition *t;
   HASH_FIND_INT(symbol_table, &sym, t);
   if(t==NULL) {
@@ -20,26 +24,4 @@ symbol get_symbol(const char *s) {
     /* else same string inserted again, all ok */
   }
   return sym;
-}
-
-symbol get_no_eq_sym(symbol sym) {
-  symbol_definition *t;
-  HASH_FIND_INT(symbol_table, &sym, t);
-  if(t==NULL) {
-    e_fatal("attempt to get no_eq_sym for unknown sym");
-  }
-  char * s = acme_strdup(t->s);
-  int l = strlen(s);
-  if(l<2) {
-    sprintf(stderr, "symbol: %s\n", s);
-    e_fatal("attempt to get no_eq_sym for too-short string");
-  }
-  if(s[l-1] != '=') {
-    sprintf(stderr, "symbol: %s\n", s);
-    e_fatal("attempt to get no_eq_sym for a sym that doesn't end in '='");
-  }
-  s[l-1] = '\0';
-  symbol sym_no_eq = get_symbol(s);
-  acme_free(s);
-  return(sym_no_eq);
 }
