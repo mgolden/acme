@@ -39,5 +39,8 @@ lexpr_hunk *make_lexpr_hunk(code_hunk *self_ch, const char *name, *subscript_ch)
 
 #define CH(str) \
   make_code_hunk(str, 0, 0, 0)
+
+#define CHS(str) \
+  make_code_hunk(acme_strdup(str), 0, 0, 0)
   
 #endif

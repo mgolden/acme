@@ -74,9 +74,27 @@ void add_var(const char *name) {
   ADD_BY_SYMBOL_ACME_HASH(symbol_table, vte);
 }
 
-int get_var_fp_offset(symbol sym) {
+/* If the symbol for the local variable is found in the stack, make a code hunk */
+/* that finds it. Note that this can be used to assign into, when stack is */
+/* subscripted with it */
+/* e.g. fp+7 or stack[stack[fp]]+7 */
+code_hunk * get_local_var_ch(symbol sym) {
   variable_table_entry *vte;
-  FIND_BY_SYMBOL_ACME_HASH(scope_stack->variable_table, sym, vte);
-  if(vte == NULL) {return 0; /* 0 being an illegal fp offset */}
-  return {vte -> fp_offset;}
+  int i = 0;
+  scope * ss = scope_stack;
+  while(ss != NULL) {
+    FIND_BY_SYMBOL_ACME_HASH(scope_stack->variable_table, sym, vte);
+    if(vte != NULL) {
+      code_hunk *ret = CHS("fp");
+      for(int j = 0; j > i; j++) {
+        ret = CCH(CCH(CHS("stack[stack["), ret), CHS("]]"));
+      }
+      char off[50];
+      sprintf(off, "%d", vte -> fp_offset);
+      ret = CCH(CCH(CCH(CCH(ret, CHS("+")), CHS(off)))
+      return ret;
+    }
+    i++;
+  }
+  return NULL;
 }

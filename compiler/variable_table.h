@@ -7,6 +7,6 @@ void fresh_scope(signature *sig);
 void pop_scope(void);
 
 void add_var(const char *name);
-int get_var_fp_offset(symbol sym);
+code_hunk * get_local_var_ch(symbol sym);
 
 #endif

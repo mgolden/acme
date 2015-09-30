@@ -117,23 +117,23 @@ code_hunk * emit_binop_call(code_hunk *e1, const char *op, code_hunk *e2){
 code_hunk * get_empty_block(void) {
   
 code_hunk * block_given(void) {
-  return CH(acme_strdup("if(stack[fp-2].b.block_function_ptr == NULL) {get_false();} else {get_true();}\n"));
+  return CHS("if(stack[fp-2].b.block_function_ptr == NULL) {get_false();} else {get_true();}\n");
 }
 
 static int open_ifs;
 
 code_hunk * start_if(void) {
   open_ifs = 1;
-  return CH(acme_strdup("if(is_true()) {\n");
+  return CHS("if(is_true()) {\n");
 }
 
 code_hunk * start_elseif(void) {
   open_ifs++;
-  return CH(acme_strdup("}\nelse {\nif(is_true()) {\n");
+  return CHS("}\nelse {\nif(is_true()) {\n");
 }
 
 code_hunk * start_else(void) {
-  return CH(acme_strdup("}\nelse {\n");
+  return CHS("}\nelse {\n");
 }
 
 code_hunk * end_if(void) {

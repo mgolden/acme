@@ -9,7 +9,8 @@ l2
 l1
 args (array)
 a4 (copy or default)
-a3 (copy or default) <- fp
+a3 (copy or default)
+old_fp <- fp
 n_args
 function name symbol
 self

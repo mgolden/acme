@@ -14,16 +14,23 @@ code_hunk * assign_lexpr(lexpr_hunk *lh, const char *assignop, code_hunk *ch) {
   if(l_op>0) {
     op_sym = get_symbol(op);
   }
-  else {
-    op_sym = (sym) 0;
-  }
   /* Push the result of the right-hand code hunk */
   code_hunk *ret = ch;
+  /* First case: If no explicit self, find symbol in the local variable table */
+  if(lh->self_ch == NULL) {
+    code_hunk * local_ch = get_local_var_ch(lh->sym);
+    if(local_ch != NULL) {
+      /* We have a local variable, if not an array, assignment is pretty simple */
+      code_hunk * offset_ch = CCH(CCH(CHS("{\nint offset = "), local_ch), "\n"); 
+      if(l_op > 0) {
+        /* TODO */
+      }
+      
   push_var_in_context(lh);
   /* Make the code_hunk for us to return */
-  code_hunk *ret = CCH(CH("{\n"),lh->self_ch));
+  code_hunk *ret = CCH(CHS("{\n"),lh->self_ch));
   lh->self_ch = NULL;
-  ret = CCH(ret,CH(acme_strdup("\nthing *self=stack[sp];\nstack[sp--]=NULL\n;")));
+  ret = CCH(ret,CHS("\nthing *self=stack[sp];\nstack[sp--]=NULL\n;"));
   if(op[0] != '\0') {
     /* Not a pure = assignment */
     
@@ -33,14 +40,13 @@ code_hunk * assign_lexpr(lexpr_hunk *lh, const char *assignop, code_hunk *ch) {
 static code_hunk * push_var_in_context(lexpr_hunk *lh) {
   /* Find the object being assigned */
   /* If there is no explicit self, we need to search for the variable in several places */
-  if(lh->self_ch == NULL) {
     /* First as a local var */
     fp_offset = get_var_fp_offset(lh->sym);
     if(fp_offset != 0) {
       /* Found! Push the local var */
       char local_str[100];
       sprintf(local_str, "stack[sp++]=stack[fp+%d];\n", fp_offset);
-      CCH (ret, CH(acme_strdup(local_str)));
+      CCH (ret, CHS(local_str));
     }
     else {
       symbol to_call = 0;
