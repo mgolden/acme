@@ -3,6 +3,8 @@
 typedef struct _variable_table_data {
   int fp_offset;
   int decl_line;
+  int is_param;
+  code_hunk * initializer;
 } variable_table_data;
 
 DECLARE_ACME_HASH(variable_table_entry, symbol sym, variable_table_data vtd);
@@ -27,6 +29,12 @@ static scope *new_scope(void) {
   return s;
 }
 
+static scope * add_scope(void) {
+  s = new_scope();
+  s->parent = scope_stack;
+  scope_stack = s;
+}
+
 /* Public functions */
 
 /* Initialize the scope stack, make the outermost scope */
@@ -35,21 +43,21 @@ void init_scope(void) {
   scope_stack->fresh = 1;
 }
 
-void push_scope(signature *sig) {
-  s = new_scope();
-  s->parent = scope_stack;
-  scope_stack = s;
+void push_scope(void) {
+  int old_top = scope_stack->current_top;
+  add_scope();
+  scope_stack->current_top = old_top;
 }
 
-void fresh_scope(signature *sig) {
-  push_scope(sig);
+void fresh_scope(void) {
+  add_scope();
   scope_stack->fresh = 1;
 }
 
 void pop_scope(void) {
   scope * p = scope_stack->parent;
   if(p == NULL) {
-    e_fatal("Attempt to pop bottom of scope stack")
+    e_fatal("Attempt to pop bottom of scope stack");
   }
   ITERATE_ACME_HASH(scope_stack->variable_table, variable_table_entry, vte) {
     acme_free(vte);
@@ -77,7 +85,7 @@ void add_var(const char *name) {
 /* If the symbol for the local variable is found in the stack, make a code hunk */
 /* that finds it. Note that this can be used to assign into, when stack is */
 /* subscripted with it */
-/* e.g. fp+7 or stack[stack[fp]]+7 */
+/* e.g. fp+7  */
 code_hunk * get_local_var_ch(symbol sym) {
   variable_table_entry *vte;
   int i = 0;
@@ -85,15 +93,12 @@ code_hunk * get_local_var_ch(symbol sym) {
   while(ss != NULL) {
     FIND_BY_SYMBOL_ACME_HASH(scope_stack->variable_table, sym, vte);
     if(vte != NULL) {
-      code_hunk *ret = CHS("fp");
-      for(int j = 0; j > i; j++) {
-        ret = CCH(CCH(CHS("stack[stack["), ret), CHS("]]"));
-      }
       char off[50];
-      sprintf(off, "%d", vte -> fp_offset);
-      ret = CCH(CCH(CCH(CCH(ret, CHS("+")), CHS(off)))
-      return ret;
+      sprintf(off, "fp+%d", vte -> fp_offset);
+      return CCS(off);
     }
+    /* Seek to parent if this is not a "fresh" scope */
+    ss = ss.fresh ? NULL : ss.parent;
     i++;
   }
   return NULL;

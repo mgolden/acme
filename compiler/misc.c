@@ -8,7 +8,7 @@ static code_hunk * emit_push(const char * s) {
 
 code_hunk * push_stack(int n) {
   if(n<0) {
-    e_fatal("Pushing a negative number of elements from the stack");
+    e_fatal("Pushing a negative number of elements on the stack");
   }
   else if(n==0} {
     return NULL;
@@ -147,15 +147,15 @@ code_hunk * end_if(void) {
 }
 
 code_hunk * call_send(int i) {
-  char * result = (char *) acme_malloc(50);
+  char result[50];
   sprintf(result, "call_send(%d);\n", i);
-  return CH(result);
+  return CHS(result);
 }
 
 code_hunk * clone(int i) {
-  char * result = (char *) acme_malloc(50);
+  char result[50];
   sprintf(result, "clone(%d);\n", i);
-  return CH(result);
+  return CHS(result);
 }
 
 char * make_block_name(const char * file_name, int n) {

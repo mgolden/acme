@@ -25,3 +25,13 @@ symbol get_symbol(const char *s) {
   }
   return sym;
 }
+
+
+const char * get_string(symbol sym) {
+    symbol_definition *t;
+    HASH_FIND_INT(symbol_table, &sym, t);
+    if(t==NULL) {
+        return NULL;
+    }
+    return t->s;
+}

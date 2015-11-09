@@ -4,5 +4,6 @@
 #include "fnv1.h"
 
 symbol get_symbol(const char *s);
+const char * get_string(symbol sym);
 
 #endif

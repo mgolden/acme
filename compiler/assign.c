@@ -1,86 +1,123 @@
 #include "compiler.h"
 
-static code_hunk * push_var_in_context(lexpr_hunk *lh);
-
-code_hunk * assign_lexpr(lexpr_hunk *lh, const char *assignop, code_hunk *ch) {
-  /* Get the op, that is, the operation before the = */
-  char op[4];
-  strncpy(op, assignop, 4);
-  op[3] = '\0';
-  /* remove the = */
-  int l_op = strlen(op);
-  if(l_op>1 && op[--l_op]=='=') {op[l_op] = '\0';}
-  symbol op_sym;
-  if(l_op>0) {
-    op_sym = get_symbol(op);
-  }
-  /* Push the result of the right-hand code hunk */
-  code_hunk *ret = ch;
-  /* First case: If no explicit self, find symbol in the local variable table */
-  if(lh->self_ch == NULL) {
-    code_hunk * local_ch = get_local_var_ch(lh->sym);
-    if(local_ch != NULL) {
-      /* We have a local variable, if not an array, assignment is pretty simple */
-      code_hunk * offset_ch = CCH(CCH(CHS("{\nint offset = "), local_ch), "\n"); 
-      if(l_op > 0) {
-        /* TODO */
-      }
-      
-  push_var_in_context(lh);
-  /* Make the code_hunk for us to return */
-  code_hunk *ret = CCH(CHS("{\n"),lh->self_ch));
-  lh->self_ch = NULL;
-  ret = CCH(ret,CHS("\nthing *self=stack[sp];\nstack[sp--]=NULL\n;"));
-  if(op[0] != '\0') {
-    /* Not a pure = assignment */
-    
-  
-}
-
-static code_hunk * push_var_in_context(lexpr_hunk *lh) {
-  /* Find the object being assigned */
-  /* If there is no explicit self, we need to search for the variable in several places */
-    /* First as a local var */
-    fp_offset = get_var_fp_offset(lh->sym);
-    if(fp_offset != 0) {
-      /* Found! Push the local var */
-      char local_str[100];
-      sprintf(local_str, "stack[sp++]=stack[fp+%d];\n", fp_offset);
-      CCH (ret, CHS(local_str));
+code_hunk * assign_lexpr(lexpr_hunk *lh, const char *assignop, code_hunk *ch_r) {
+    /* Get the op, that is, the operation before the = */
+    char op[4];
+    strncpy(op, assignop, 4);
+    op[3] = '\0';
+    /* remove the = */
+    int l_op = strlen(op);
+    if(l_op == 0 || op[l_op-1] != '=') {
+        e_fatal("assign_lexpr called with op not ending in '=': %s\n", op);
+    }
+    op[--l_op] = '\0';
+    /* local vars */
+    code_hunk * self_ch = lh->self_ch;
+    symbol sym = lh->sym;
+    code_hunk * subscript_ch = lh->subscript_ch;
+    /* The return value */
+    code_hunk * ret;
+    if(self_ch == NULL) {
+        /* First case: If no explicit self, find symbol in the local variable table */
+        code_hunk * offset_ch = get_local_var_ch(sym);
+        if(offset_ch != NULL) {
+            /* We have a local variable */
+            code_hunk * ret = CCH3(CHS("{\nint offset = "), offset_ch, ";\n");
+            if(subscript_ch == NULL) {
+                /* Not an array, so assignment is pretty simple */
+                if(l_op > 0) {
+                    ret = CCH2(ret, emit_binop_call(CHS("stack[offset]"), op, ch_r));
+                }
+                else {
+                    ret = CCH2(ret, ch_r);
+                }
+                /* Assign, and do not pop the stack! */
+                ret = CCH2(ret, CHS("stack[offset] = stack[sp-1];\n"));
+            }
+            else {
+                /* Local array variable */
+                /* Push a NULL onto the stack */
+                ret = CCH2(ret, "stack[sp++] = NULL;\n");
+                /* Evaluate subscript onto stack */
+                ret = CCH(ret, subscript_ch);
+                if(l_op > 0) {
+                    /* Duplicate the subscript on top of the stack, to use as param to the [] */                    
+                    ret = CCH2(ret, CHS("stack[sp] = stack[sp-1]; sp++;\n");
+                    /* Now make the call, we have the subscript, next the empty block, next the local var, next the symbol */
+                    ret = CCH5(ret, get_empty_block(), CHS("stack[sp++] = stack[offset];\n", new_sym_thing("[]"), call_send(1));
+                    /* Now the stack has the subscript and the value of the subscripted local var, emit the operator */
+                    ret = emit_binop_call(ret, op, ch_r);
+                }
+                else {
+                    ret = CCH2(ret, ch_r);
+                }
+                /* At this point ret has added to the stack a NULL, the subscript, and the value to assign */
+                /* Move the value to assign to where the NULL is */
+                ret = CCH2(ret, "stack[sp-3] = stack[sp-1];\n");
+                /* Now, add to the stack the local "self" and then the symbol */
+                ret = CCH5(ret, get_empty_block(), CHS("stack[sp++] = stack[offset];\n"), new_sym_thing("[]="), call_send(2));
+                /* Pop the stack! Ignore what []= returns! (We've duplicated the value) */
+                ret = CCH2(ret, CHS("sp--; stack[sp] = NULL;\n"));
+            }
+            /* Close the brace */
+            ret = CCH2(ret, CHS("}\n"));
+            return ret;
+        }
+        /* Didn't find it in the local vars, so the target is self */
+        self_ch = get_self();
+    }
+    /* Not a local variable */
+    /* Push a NULL onto the stack */
+    ret = CCH2(ret, "stack[sp++] = NULL;\n");
+    if(subscript_ch == NULL) {
+        /* Not an array */
+        /* Push the "self" on the stack */
+        ret = CCH2(ret, self_ch);
+        if(l_op > 0) {
+            /* Push the empty block */
+            ret = CCH2(ret, get_empty_block());
+            /* Duplicate the self */
+            ret = CCH2(ret, CHS("stack[sp] = stack[sp-2]; sp++;\n"));
+            /* Stack now has NULL, self, empty_block, self.  Call getter */
+            ret = CCH5(ret, new_sym_thing_from_symbol(symbol), call_send(1));
+            /* emit operator */
+            ret = emit_binop_call(ret, op, ch_r);
+        }
+        else {
+            ret = CCH2(ret, ch_r);
+        }
+        /* At this point ret has added to the stack a NULL, self, and the value to assign */
+        /* Move the value to assign to where the NULL is */
+        ret = CCH2(ret, "stack[sp-3] = stack[sp-1];\n");
+        /* Duplicate the self */
+        ret = CCH2(ret, "stack[sp] = stack[sp-2]; sp++;\n");
+        /* Now we have added value to assign, self, value to assign, self */
+        /* Need to make the x= symbol */
+        char * lexpr_str = get_string(symbol);
+        int l = strlen(lexp_str);
+        char * setter_str = acme_malloc(l + 2);
+        strcpy(setter_str, lexpr_str);
+        setter_str[l] = '=';
+        setter_str[l+1] = '\0';
+        /* Now do the assignment call */
+        ret = CCH5(ret, get_empty_block(), new_sym_thing(setter_str), call_send(1));
+        /* Stack now contains value to assign, self, return value from setter */
+        /* Pop the stack twice: get rid of the extra self and return value from setter */
+        ret = CCH2(ret, CHS("sp-=2; stack[sp] = stack[sp+1] = NULL;\n"));
     }
     else {
-      symbol to_call = 0;
-      /* Look for shy variable */
-      dotted_labels = get_dotted_labels();
-      int n1 = strlen(dotted_lables);
-      int n2 = strlen(name);
-      char *shy_assign_str = acme_malloc(n1 + n2 + 3);
-      char *str2 = shy_assign_str;
-      strcpy(str2, dotted_labels);
-      acme_free(dotted_labels); /* caller must free */
-      str2 += n1;
-      *(str2++) = '.';
-      strcpy(sn2, name);
-      str2 += n2;
-      *(str2++) = '=';
-      *str2 = '\0';
-      symbol shy_assign_sym = get_symbol(shy_assign_name);
-      if(function_exists(shy_assign_sym)) {
-        to_call = shy_assign_sym;
-        acme_free(shy_name);
-      }
-      else {
-        /* Now as a non-shy variable */
-        char *assign_str = acme_malloc(n2+2);
-        str2 = assign_str;
-        strcpy(assign_str, name);
-        *(str2++) = '=';
-        *str2 = '\0';
-        to_call = get_symbol(assign_name);
-      }
-    }
-  }
-}
+        /* Array */
+        if(l_op > 0) {
+            code_hunk * x = CCH4(subscript_ch, self_ch, get_empty_block(), new_sym_thing("[]"), call_send(2));
+            ch_r2= emit_binop_call(x, op, ch_r);
+        }
+        else {
+            ch_r2 = ch_r;
+        }
+        code_hunk * x = CCH4(self_ch, get_empty_block(), symbol, call_send(1));
+        return CCH5(self_ch, get_empty_block()), new_sym_thing("[]=")), call_send(1)));
     
+}
+
 code_hunk * dereference(lexpr_hunk *lh){
 }

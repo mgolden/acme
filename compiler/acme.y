@@ -327,13 +327,13 @@ method_statement:
 method_line:
   method_name signature TOKEOL
   {
-    fresh_scope(sig);
   }
   ;
 
 method_name:
   TOKMETHOD shy function_name
   {
+    fresh_scope();
     start_signature($3, $2);
   }
   ;
@@ -512,7 +512,7 @@ assignop:
 begin:
   TOKBEGIN
   {
-    push_scope(NULL);
+    push_scope();
   }
   ;
 
@@ -822,9 +822,9 @@ do:
   ;
 
 optional_pipe_param_list:
-  { push_scope(sig); }
+  { push_scope(); }
   | TOKPIPE param_list TOKPIPE
-  { push_scope(sig); }
+  { push_scope(); }
   ;
 
 array:
@@ -953,7 +953,7 @@ ability_statement:
 ability_begin:
   TOKABILITY TOKCONST TOKEOL
   {
-    push_scope(NULL);
+    push_scope();
     push_label($2);
     $$ = NULL;
   }

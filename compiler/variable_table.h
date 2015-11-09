@@ -2,8 +2,8 @@
 #define VARIABLE_TABLE_H
 
 void init_scope(void);
-void push_scope(signature *sig);
-void fresh_scope(signature *sig);
+void push_scope(void);
+void fresh_scope(void);
 void pop_scope(void);
 
 void add_var(const char *name);

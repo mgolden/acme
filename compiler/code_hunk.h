@@ -36,6 +36,41 @@ lexpr_hunk *make_lexpr_hunk(code_hunk *self_ch, const char *name, *subscript_ch)
 /* concatenate code hunks */
 #define CCH(ch1, ch2) \
   concatenate_code_hunks(ch1, ch2)
+#define CCH2(ch1, ch2) \
+  concatenate_code_hunks(ch1, ch2)
+#define CCH3(ch1, ch2, ch3) \
+  concatenate_code_hunks( \
+    concatenate_code_hunks(ch1, ch2), ch3)
+#define CCH4(ch1, ch2, ch3, ch4) \
+  concatenate_code_hunks( \
+    concatenate_code_hunks( \
+      concatenate_code_hunks(ch1, ch2), ch3), ch4)
+#define CCH5(ch1, ch2, ch3, ch4, ch5) \
+  concatenate_code_hunks( \
+    concatenate_code_hunks( \
+      concatenate_code_hunks( \
+        concatenate_code_hunks(ch1, ch2), ch3), ch4), ch5)
+#define CCH6(ch1, ch2, ch3, ch4, ch5, ch6) \
+  concatenate_code_hunks( \
+    concatenate_code_hunks( \
+      concatenate_code_hunks( \
+        concatenate_code_hunks( \
+          concatenate_code_hunks(ch1, ch2), ch3), ch4), ch5), ch6)
+#define CCH7(ch1, ch2, ch3, ch4, ch5, ch6, ch7) \
+  concatenate_code_hunks( \
+    concatenate_code_hunks( \
+      concatenate_code_hunks( \
+        concatenate_code_hunks( \
+          concatenate_code_hunks( \
+            concatenate_code_hunks(ch1, ch2), ch3), ch4), ch5), ch6), ch7)
+#define CCH8(ch1, ch2, ch3, ch4, ch5, ch6, ch7, ch8) \
+  concatenate_code_hunks( \
+    concatenate_code_hunks( \
+      concatenate_code_hunks( \
+        concatenate_code_hunks( \
+          concatenate_code_hunks( \
+            concatenate_code_hunks( \
+              concatenate_code_hunks(ch1, ch2), ch3), ch4), ch5), ch6), ch7), ch8)
 
 #define CH(str) \
   make_code_hunk(str, 0, 0, 0)
