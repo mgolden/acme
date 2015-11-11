@@ -9,15 +9,9 @@
 #include "label.h"
 #include "variable_table.h"
 #include "assign.h"
-#include "block.h"
+/* #include "block.h" */
 
 typedef struct _signature signature;
-
-#ifdef MAIN
-#define extrn extern
-#else
-#define extrn
-#endif
 
 extrn symbol_definition *symbol_table;
 

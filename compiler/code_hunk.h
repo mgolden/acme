@@ -31,7 +31,7 @@ struct _lexpr_hunk {
 code_hunk *make_code_hunk(char *code, int comexprs, int locvars, int offset);
 code_hunk *concatenate_code_hunks(code_hunk *ch1, code_hunk *ch2);
 void free_code_hunk(code_hunk *ch);
-lexpr_hunk *make_lexpr_hunk(code_hunk *self_ch, const char *name, *subscript_ch);
+lexpr_hunk *make_lexpr_hunk(code_hunk *self_ch, const char *name, code_hunk *subscript_ch);
 
 /* concatenate code hunks */
 #define CCH(ch1, ch2) \

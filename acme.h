@@ -102,4 +102,6 @@ union _stack_element {
 
 extrn symbol_definition *symbol_table;
 
+#include "get_symbol.h"
+
 #endif
