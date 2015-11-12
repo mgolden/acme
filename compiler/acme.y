@@ -920,7 +920,7 @@ pure_lexpr:
   }
   | val TOKDOT TOKWORD
   {
-    $$ = make_lexpr_hunk($1, $2, NULL);
+    $$ = make_lexpr_hunk($1, $3, NULL);
   }
   ;
 

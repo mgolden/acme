@@ -11,7 +11,7 @@
 #define MAX_LABEL_DEPTH 100
 
 void label_init(void);
-char *current_label(void);
+const char *current_label(void);
 void push_label(const char *label);
 void pop_label(void);
 /* Return the current label in dotted notation from the start of the stack */

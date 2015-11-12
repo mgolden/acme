@@ -10,10 +10,10 @@ code_hunk * push_stack(int n) {
   if(n<0) {
     e_fatal("Pushing a negative number of elements on the stack");
   }
-  else if(n==0} {
+  else if(n==0) {
     return NULL;
   }
-  result = (char *) acme_malloc(50);
+  char * result = (char *) acme_malloc(50);
   sprintf(result, "{sp += %d;}", n);
   return CH(result);
 }
@@ -22,7 +22,7 @@ code_hunk * pop_stack(int n) {
   if(n<0) {
     e_fatal("Popping a negative number of elements from the stack");
   }
-  else if(n==0} {
+  else if(n==0) {
     return NULL;
   }
   char * result = (char *) acme_malloc(100);
@@ -48,24 +48,24 @@ code_hunk * get_false(void) {
 
 code_hunk * get_self(void) {
   // self is stored at fp-3
-  return(acme_strdup("stack[sp++] = stack[fp-3];\n"));
+  return(CHS("stack[sp++] = stack[fp-3];\n"));
 }
 
 code_hunk * new_i_thing(acme_int i) {
   char * result = (char *) acme_malloc(100);
-  sprintf("{stack_entry *se = stack+(sp++); se->t.u.i=%lld; se->t.a_list=b_i;}\n", (long long) i);
+  sprintf(result, "{stack_entry *se = stack+(sp++); se->t.u.i=%lld; se->t.a_list=b_i;}\n", (long long) i);
   return CH(result);
 }
 
 code_hunk * new_f_thing(acme_float f) {
   char * result = (char *) acme_malloc(100);
-  sprintf("{stack_entry *se = stack+(sp++); se->t.u.f=%24.20e; se->t.a_list=b_f;}\n", f);
+  sprintf(result, "{stack_entry *se = stack+(sp++); se->t.u.f=%24.20e; se->t.a_list=b_f;}\n", f);
   return CH(result);
 }
 
 code_hunk * new_s_thing(const char *s) {
 /*
- *  int l = 2*strlen(s)+1;
+ *  size_t l = 2*strlen(s)+1;
   ss = (char *) acme_malloc(l);
   char *p = ss;
   char *q = s;
@@ -76,15 +76,15 @@ code_hunk * new_s_thing(const char *s) {
     *(p++) = *(q++);
   } (*q != '\0');
 */
-  l = strlen(s);
-  result = (char *) acme_malloc(100 + l);
-  sprintf("{stack_entry *se = stack+(sp++); se->t.u.s=acme_strdup(\"%s\"); se->t.a_list=b_s;}\n", s);
+  size_t l = strlen(s);
+  char * result = (char *) acme_malloc(100 + l);
+  sprintf(result, "{stack_entry *se = stack+(sp++); se->t.u.s=acme_strdup(\"%s\"); se->t.a_list=b_s;}\n", s);
   return CH(result);
 }
 
 code_hunk * new_sym_thing_from_symbol(symbol sym) {
   char * result = (char *) acme_malloc(100);
-  sprintf("{stack_entry *se = stack+(sp++); se->t.u.sym=%d; se->t.a_list=b_sym;}\n", sym);
+  sprintf(result, "{stack_entry *se = stack+(sp++); se->t.u.sym=%" PRIu64 "; se->t.a_list=b_sym;}\n", sym);
   return CH(result);
 }
 
@@ -94,15 +94,15 @@ code_hunk * new_sym_thing(const char *s) {
 }
 
 code_hunk * new_array_thing(int i) {
-  char * result = (char *) acme_malloc(50);
+  char result[50];
   sprintf(result, "new_array_thing(%d);\n", i);
-  return CH(result);
+  return CHS(result);
 }
 
 code_hunk * new_hash_thing(int i) {
-  char * result = (char *) acme_malloc(50);
+  char result[50];
   sprintf(result, "new_hash_thing(%d);\n", i);
-  return CH(result);
+  return CHS(result);
 }
 
 
@@ -115,7 +115,9 @@ code_hunk * emit_binop_call(code_hunk *e1, const char *op, code_hunk *e2){
 }
 
 code_hunk * get_empty_block(void) {
-  
+  return CHS("empty_block();\n");
+}
+
 code_hunk * block_given(void) {
   return CHS("if(stack[fp-2].b.block_function_ptr == NULL) {get_false();} else {get_true();}\n");
 }
@@ -139,7 +141,7 @@ code_hunk * start_else(void) {
 code_hunk * end_if(void) {
   char * result = (char *) acme_malloc(10+open_ifs);
   char * p = result;
-  for(int i = 0; i<open_ifs; i++) {*(p++) = '}'}
+  for(int i = 0; i<open_ifs; i++) {*(p++) = '}';}
   *(p++) = '\n';
   *(p++) = '\0';
   open_ifs = 0;
@@ -159,7 +161,7 @@ code_hunk * clone(int i) {
 }
 
 char * make_block_name(const char * file_name, int n) {
-    int l = strlen(file_name);
+    size_t l = strlen(file_name);
     char * result = (char *) acme_malloc(10 + l);
     strcpy(result, file_name);
     sprintf(result+l, "%d", n);

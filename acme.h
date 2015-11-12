@@ -4,7 +4,11 @@
 /* Usual C things */
 #include <stdio.h>
 #include <string.h>
+/* Make sure to get special macros for printf */
+#define __STDC_FORMAT_MACROS
 #include <stdint.h>
+#include <inttypes.h>
+
 
 /* Garbage collector */
 #include <gc.h>

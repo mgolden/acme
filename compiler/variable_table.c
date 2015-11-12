@@ -1,4 +1,4 @@
-#include "compiler.h"
+#include "variable_table.h"
 
 typedef struct _variable_table_data {
   int fp_offset;
@@ -11,26 +11,26 @@ DECLARE_ACME_HASH(variable_table_entry, symbol sym, variable_table_data vtd);
 
 typedef struct _scope scope;
 
-struct scope {
+struct _scope {
   scope *parent;
   int fresh;
   int current_top;
   variable_table_entry *variable_table;
-}
+};
 
 static scope * scope_stack;
 
 static scope *new_scope(void) {
-  scope *s = acme_malloc(sizeof(scope));
+  scope * s = (scope *) acme_malloc(sizeof(scope));
   s->parent = NULL;
   s->fresh = 0;
   s->current_top = 0;
-  s->variable_table = NEW_ACME_HASH(scope);
+  s->variable_table = NULL;
   return s;
 }
 
 static scope * add_scope(void) {
-  s = new_scope();
+  scope * s = new_scope();
   s->parent = scope_stack;
   scope_stack = s;
 }
@@ -72,7 +72,7 @@ void add_var(const char *name) {
   /* Check that symbol isn't already declared */
   FIND_BY_SYMBOL_ACME_HASH(scope_stack->variable_table, sym, vte);
   if(vte != NULL) {
-    e_warning(error, "Variable redeclared, originally declared on line %d", decl_line);
+    e_warning("error", "Variable redeclared, originally declared on line %d", decl_line);
     return;
   }
   NEW_ACME_HASH(variable_table_entry, vte);

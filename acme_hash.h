@@ -29,8 +29,7 @@ typedef struct _ ## typename { \
 
 /* Create a new, unfilled ACME_HASH entry */
 #define NEW_ACME_HASH(typename, v) \
-  ;(typename *) v = (typename *) acme_malloc(sizeof(typename)); \
-  v->hh = NULL;
+  ;typename * v = (typename *) acme_malloc(sizeof(typename));
 
 /* Iterate over an ACME_HASH */
 #define ITERATE_ACME_HASH(hashname, membertype, var) \

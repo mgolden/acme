@@ -1,6 +1,6 @@
 #define MAIN
 
-#include <compiler.h>
+#include "compiler.h"
 
 void compiler_init(void) {
   label_init();

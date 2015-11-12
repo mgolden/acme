@@ -5,8 +5,8 @@
 symbol get_symbol(const char *s) {
   symbol sym = (symbol) qhashfnv1_64((const void *) s, (size_t)strlen(s));
   if(sym == 0) {
-    sprintf(stderr, "String \"%s\" hashed to 0!", s);
-    e_fatal("string hashed to 0");
+    fprintf(stderr, "get_symbol: String \"%s\" hashed to 0!", s);
+    exit(1);
   }
   symbol_definition *t;
   HASH_FIND_INT(symbol_table, &sym, t);
@@ -18,8 +18,8 @@ symbol get_symbol(const char *s) {
   }
   else {
     if(strcmp(t->s, s)!=0) {
-      sprintf(stderr, "collision: %s != %s\n", t->s, s);
-      e_fatal("collision of different strings as same symbol");
+      fprintf(stderr, "get_symbol: collision of different strings as same symbol: %s != %s\n", t->s, s);
+      exit(1);
     }
     /* else same string inserted again, all ok */
   }

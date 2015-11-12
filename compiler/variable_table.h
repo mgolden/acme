@@ -1,6 +1,8 @@
 #ifndef VARIABLE_TABLE_H
 #define VARIABLE_TABLE_H
 
+#include "compiler.h"
+
 void init_scope(void);
 void push_scope(void);
 void fresh_scope(void);

@@ -1,6 +1,8 @@
 #ifndef MISC_H
 #define MISC_H
 
+#include "compiler.h"
+
 #include "code_hunk.h"
 
 code_hunk * push_stack(int n);

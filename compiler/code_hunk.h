@@ -24,7 +24,7 @@ struct _code_list_entry {
 
 struct _lexpr_hunk {
   code_hunk *self_ch;
-  symbol sym;
+  const char * name;
   code_hunk *subscript_ch;
 };
 

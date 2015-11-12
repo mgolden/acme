@@ -6,14 +6,15 @@ code_hunk * assign_lexpr(lexpr_hunk *lh, const char *assignop, code_hunk *ch_r) 
     strncpy(op, assignop, 4);
     op[3] = '\0';
     /* remove the = */
-    int l_op = strlen(op);
+    size_t l_op = strlen(op);
     if(l_op == 0 || op[l_op-1] != '=') {
         e_fatal("assign_lexpr called with op not ending in '=': %s\n", op);
     }
     op[--l_op] = '\0';
     /* local vars */
     code_hunk * self_ch = lh->self_ch;
-    symbol sym = lh->sym;
+    const char * name = lh->name;
+    symbol sym = get_symbol(name);
     code_hunk * subscript_ch = lh->subscript_ch;
     /* The return value */
     code_hunk * ret;
@@ -71,11 +72,10 @@ code_hunk * assign_lexpr(lexpr_hunk *lh, const char *assignop, code_hunk *ch_r) 
     ret = CCH2(ret, CHS("stack[sp++] = NULL;\n"));
     if(subscript_ch == NULL) {
         /* Not an array */
-        /* Need to make the x= setter string */
-        const char * lexpr_str = get_string(sym);
-        int l = strlen(lexpr_str);
+        /* Need to make the name= setter string */
+        size_t l = strlen(name);
         char * setter_str = acme_malloc(l + 2);
-        strcpy(setter_str, lexpr_str);
+        strcpy(setter_str, name);
         setter_str[l] = '=';
         setter_str[l+1] = '\0';
         /* Push self and rhs on stack */
