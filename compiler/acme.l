@@ -9,6 +9,7 @@
 #include "code_hunk.h"
 
 #include "y.tab.h"
+#include "lex.yy.h"
 
 /* Return a constant string, no need to duplicate */
 #define return_s_c(tok, _s) {yylval.s=_s; return(tok);}

@@ -1,5 +1,7 @@
 #include "variable_table.h"
 
+#include "lex.yy.h"
+
 typedef struct _variable_table_data {
   int fp_offset;
   int decl_line;
@@ -67,19 +69,18 @@ void pop_scope(void) {
 }
 
 void add_var(const char *name) {
-  variable_table_entry *vte;
+  variable_table_entry *vtex;
   symbol sym = get_symbol(name);
   /* Check that symbol isn't already declared */
-  FIND_BY_SYMBOL_ACME_HASH(scope_stack->variable_table, sym, vte);
-  if(vte != NULL) {
-    e_warning("error", "Variable redeclared, originally declared on line %d", decl_line);
+  FIND_BY_SYMBOL_ACME_HASH(scope_stack->variable_table, sym, vtex);
+  if(vtex != NULL) {
+    e_warning("Variable redeclared, originally declared on line %d", vtex->vtd.decl_line);
     return;
   }
   NEW_ACME_HASH(variable_table_entry, vte);
-  vte->sym = sym;
   vte->vtd.fp_offset = scope_stack->current_top++;
   vte->vtd.decl_line = yyget_lineno();
-  ADD_BY_SYMBOL_ACME_HASH(symbol_table, vte);
+  ADD_BY_SYMBOL_ACME_HASH(scope_stack->variable_table, sym, vte);
 }
 
 /* If the symbol for the local variable is found in the stack, make a code hunk */
@@ -94,11 +95,11 @@ code_hunk * get_local_var_ch(symbol sym) {
     FIND_BY_SYMBOL_ACME_HASH(scope_stack->variable_table, sym, vte);
     if(vte != NULL) {
       char off[50];
-      sprintf(off, "fp+%d", vte -> fp_offset);
-      return CCS(off);
+      sprintf(off, "fp+%d", vte -> vtd.fp_offset);
+      return CHS(off);
     }
     /* Seek to parent if this is not a "fresh" scope */
-    ss = ss.fresh ? NULL : ss.parent;
+    ss = ss->fresh ? NULL : ss->parent;
     i++;
   }
   return NULL;

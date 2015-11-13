@@ -12,9 +12,8 @@ symbol get_symbol(const char *s) {
   HASH_FIND_INT(symbol_table, &sym, t);
   if(t==NULL) {
     NEW_ACME_HASH(symbol_definition, sd);
-    sd -> sym = sym;
     sd -> s = acme_strdup(s);
-    ADD_BY_SYMBOL_ACME_HASH(symbol_table, sd);
+    ADD_BY_SYMBOL_ACME_HASH(symbol_table, sym, sd);
   }
   else {
     if(strcmp(t->s, s)!=0) {

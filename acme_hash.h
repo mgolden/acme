@@ -47,7 +47,8 @@ typedef struct _ ## typename { \
 /* Note: must be unique.  If a collision, it's an error */
 /* Note: key field must be a symbol named sym */
 /* Note: the variable the_hash is side effected by this */
-#define ADD_BY_SYMBOL_ACME_HASH(the_hash, entry) \
+#define ADD_BY_SYMBOL_ACME_HASH(the_hash, sym, entry) \
+  entry->sym = sym; \
   HASH_ADD_INT(the_hash, sym, entry);
 
 #endif
