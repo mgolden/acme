@@ -9,3 +9,7 @@ code_hunk * emit_yield(int n_comexprs) {
             pop_stack(n_comexprs+4)),
               CHS("if(ret) {return(1);}\n}\n"));
 }
+
+code_hunk * emit_end_block(void) {
+    return CHS("end_block();\n");
+}

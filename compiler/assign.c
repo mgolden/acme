@@ -129,8 +129,8 @@ code_hunk * assign_lexpr(lexpr_hunk *lh, const char *assignop, code_hunk *ch_r) 
         /* stack has value to assign, the array, subscript, and the return value */
         /* Pop the stack three times: get rid of the extra array and what []= returns */
         ret = CCH2(ret, CHS("sp-=3; stack[sp] = stack[sp+1] = stack[sp+2] = NULL;\n"));
-        return ret;
     }
+    return ret;
 }
 
 code_hunk * dereference(lexpr_hunk *lh){

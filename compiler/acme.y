@@ -15,6 +15,36 @@ static char *input_file_name;
 static FILE *output_file;
 static int n_blocks;
 
+/* Not sure why I need these */
+/* I must have something amiss */
+extern int yylex (void);
+extern int yyparse(void);
+
+static void usage(void) {
+  fprintf(stderr, "usage: acme source.ac\n");
+  exit(1);
+}
+
+
+int main(int argc, char **argv)
+{
+  extern FILE *yyin;  /* Used by lex */
+  if(argc != 1) usage();
+  n_blocks = 0;
+  char *input_file_name = argv[1];
+  char *output_file_name = acme_strdup(input_file_name);
+  char *p = strrchr(input_file_name, '.');
+  if(strcmp(p,".ac")!=0) usage();
+  *p++ = 'c';
+  *p = '\0';
+  output_file = fopen(output_file_name, "w");
+  acme_free(output_file_name);
+  yyin = fopen(input_file_name, "r");
+  compiler_init();
+  yyparse();
+  fclose(yyin);
+}
+
 %}
 
 %token TOKEOF  0  "end of file"
@@ -128,20 +158,20 @@ static int n_blocks;
   char *s;
   symbol sym;
   code_hunk *code_hunk;
+  lexpr_hunk *lexpr_hunk;
 }
 
 %type <i> shy
 
-%type <str> property_lexpr
-%type <str> const_or_word
-%type <str> function_name
-%type <str> add
-%type <str> mul
-%type <str> shift
-%type <str> comparisonA
-%type <str> comparisonB
-%type <str> assignop
-%type <str> unary
+%type <s> const_or_word
+%type <s> function_name
+%type <s> add
+%type <s> mul
+%type <s> shift
+%type <s> comparisonA
+%type <s> comparisonB
+%type <s> assignop
+%type <s> unary
 
 %type <code_hunk> buck
 %type <code_hunk> nil
@@ -190,6 +220,7 @@ static int n_blocks;
 %type <code_hunk> hash_list
 %type <code_hunk> hash_element
 %type <code_hunk> argument_list
+%type <lexpr_hunk> property_lexpr
 %type <lexpr_hunk> pure_lexpr
 %type <lexpr_hunk> var_lexpr
 %type <lexpr_hunk> array_lexpr
@@ -203,7 +234,7 @@ static int n_blocks;
 start:
   external_statement_list TOKEOF
   {
-    dump_function(NULL, $1, output_file);
+    dump_function($1, output_file);
   }
   ;
 
@@ -224,7 +255,7 @@ internal_statement:
     $$ = NULL;
   }
   | blank_line
-  { $$ = $1 }
+  { $$ = $1; }
   | expr_statement /* Pop the stack before every statement */
   { $$ = CCH(pop_stack(1), $1); }
   ;
@@ -392,7 +423,7 @@ extra_signature:
 signature_star_part:
   TOKSTAR TOKWORD
   {
-    star_param(sig, $2));
+    star_param($2);
   }
   ;
 
@@ -404,7 +435,7 @@ param_list:
 param:
   TOKWORD
   {
-    param(sig, $1);
+    param($1);
   }
   ;
   
@@ -415,7 +446,7 @@ param_with_default_list:
 
 param_with_default:
   TOKWORD TOKEQ initializer_expression
-  { param_with_default(sig, $1, $3)); }
+  { param_with_default($1, $3); }
   ;
 
 initializer_expression:
@@ -599,7 +630,8 @@ val:
   | begin TOKEOL internal_statement_list TOKEND
   {
     pop_scope();
-    $$ = CCH(CCH(push_stack($3->locvars), $3), pop_stack(n));
+    int n = $3->locvars;
+    $$ = CCH3(push_stack(n), $3, pop_stack(n));
     $$->locvars = 0;
   }
   | TOKYIELD argument_list
@@ -773,7 +805,7 @@ function_call:
       /* You can't have a subscript here */
       e_fatal("Found non-empty subscript in function call lexpr_hunk");
     }
-    acme_free($1->name);
+    acme_free((void *)($1->name));
     acme_free($1);
   }
   ;
@@ -855,7 +887,7 @@ hash:
   }
   | TOKLBRACE hash_list TOKRBRACE
   {
-    $$ = CCH($2, new_hash_thing($2->comexprs);
+    $$ = CCH($2, new_hash_thing($2->comexprs));
     $$->comexprs = 0;
   }
   ;
@@ -920,9 +952,10 @@ array_lexpr:
 ability_statement:
   ability_begin external_statement_list TOKEND
   {
-    pop_label()
+    pop_label();
     pop_scope();
-    $$ = CCH(CCH(CCH($1, push_stack($3->locvars)), $3), pop_stack(n));
+    int n = $2->locvars;
+    $$ = CCH(CCH(CCH($1, push_stack(n)), $2), pop_stack(n));
     $$->locvars = 0;
   }
   ;

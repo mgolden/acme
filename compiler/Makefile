@@ -4,8 +4,8 @@ CC     = gcc $(CFLAGS)
 all: acme
 
 # Note that lex requires _POSIX_SOURCE, as it references fileno
-acme: lex.yy.o y.tab.o acme_error.o assign.o code_hunk.o compiler_init.o function.o label.o misc.o variable_table.o
-	$(CC) -o acme lex.yy.o y.tab.o acme_error.o assign.o code_hunk.o compiler_init.o function.o label.o misc.o variable_table.o
+acme: lex.yy.o y.tab.o acme_error.o assign.o code_hunk.o compiler_init.o function.o label.o misc.o variable_table.o ../get_symbol.o
+	$(CC) -o acme lex.yy.o y.tab.o acme_error.o assign.o code_hunk.o compiler_init.o function.o label.o misc.o variable_table.o ../get_symbol.o -lgc
 
 y.tab.o: y.tab.c
 	$(CC) -c -D_POSIX_SOURCE -DYYDEBUG y.tab.c
@@ -19,7 +19,7 @@ lex.yy.c: acme.l
 lex.yy.o: lex.yy.c y.tab.c ../acme.h
 	$(CC) -c -D_POSIX_SOURCE -DYYDEBUG lex.yy.c
 
-compiler.h: acme_error.h assign.h code_hunk.h compiler.h function.h label.h misc.h variable_table.h
+compiler.h: acme_error.h assign.h code_hunk.h function.h label.h misc.h variable_table.h
 	touch compiler.h
 
 acme_error.o: acme_error.c acme_error.h lex.yy.c # really lex.yy.h
@@ -45,3 +45,6 @@ misc.o: misc.c compiler.h
 
 variable_table.o: variable_table.c compiler.h lex.yy.c # really lex.yy.h
 	$(CC) -c variable_table.c
+
+clean:
+	/bin/rm -f *.o lex.yy.* y.tab.*
