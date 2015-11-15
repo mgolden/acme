@@ -240,7 +240,7 @@ start:
 
 internal_statement_list:
   {
-    $$ = get_nil();
+    $$ = push_nil();
   }
   | internal_statement_list internal_statement
   {
@@ -260,7 +260,7 @@ internal_statement:
   { $$ = CCH(pop_stack(1), $1); }
   ;
 external_statement_list:
-  { $$ = get_nil(); }
+  { $$ = push_nil(); }
   | external_statement_list external_statement
   { $$ = CCH($1, $2); }
   ;
@@ -320,7 +320,7 @@ property_lexpr:
   TOKPROPERTY shy const_or_word
   {
     add_property($3, $2);
-    $$ = make_lexpr_hunk(get_self(), $3, NULL);
+    $$ = make_lexpr_hunk(push_self(), $3, NULL);
   }
   ;
 
@@ -328,7 +328,7 @@ method_statement:
   method_line internal_statement_list TOKEND TOKEOL
   {
     dump_function($2, output_file);
-    $$ = get_nil();
+    $$ = push_nil();
   }
   ;
 
@@ -527,28 +527,28 @@ begin:
 buck:
   TOKBUCK
   {
-    $$ = get_buck();
+    $$ = push_buck();
   }
   ;
 
 nil:
   TOKNIL
   {
-    $$ = get_nil();
+    $$ = push_nil();
   }
   ;
 
 true:
   TOKTRUE
   {
-    $$ = get_true();
+    $$ = push_true();
   }
   ;
 
 false:
   TOKFALSE
   {
-    $$ = get_false();
+    $$ = push_false();
   }
   ;
 
@@ -605,7 +605,7 @@ val:
   | TOKLPAREN expr TOKRPAREN
   { $$ = $2; }
   | TOKSELF
-  { $$ = get_self(); }
+  { $$ = push_self(); }
   | TOKBLOCKGIVEN
   { $$ = block_given(); }
   | TOKAT TOKLPAREN pure_expr_list TOKRPAREN
@@ -624,7 +624,7 @@ val:
   | array_lexpr
   { $$ = dereference($1); }
   | TOKCONST
-  { $$ = dereference(make_lexpr_hunk(get_self(), $1, NULL)); }
+  { $$ = dereference(make_lexpr_hunk(push_self(), $1, NULL)); }
   | val TOKDOT TOKCONST
   { $$ = dereference(make_lexpr_hunk($1, $3, NULL)); }
   | begin TOKEOL internal_statement_list TOKEND

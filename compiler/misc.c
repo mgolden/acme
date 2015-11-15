@@ -30,23 +30,23 @@ code_hunk * pop_stack(int n) {
   return CH(result);
 }
 
-code_hunk * get_buck(void) {
+code_hunk * push_buck(void) {
   return emit_push("t_buck");
 }
 
-code_hunk * get_nil(void) {
+code_hunk * push_nil(void) {
   return emit_push("t_nil");
 }
 
-code_hunk * get_true(void) {
+code_hunk * push_true(void) {
   return emit_push("t_true");
 }
 
-code_hunk * get_false(void) {
+code_hunk * push_false(void) {
   return emit_push("t_false");
 }
 
-code_hunk * get_self(void) {
+code_hunk * push_self(void) {
   // self is stored at fp-3
   return(CHS("stack[sp++] = stack[fp-3];\n"));
 }
@@ -119,7 +119,7 @@ code_hunk * push_empty_block(void) {
 }
 
 code_hunk * block_given(void) {
-  return CHS("if(stack[fp-2].b.block_function_ptr == NULL) {get_false();} else {get_true();}\n");
+  return CHS("if(stack[fp-2].b.block_function_ptr == NULL) {push_false();} else {push_true();}\n");
 }
 
 static int open_ifs;

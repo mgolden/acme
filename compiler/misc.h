@@ -8,12 +8,12 @@
 code_hunk * push_stack(int n);
 code_hunk * pop_stack(int n);
 
-code_hunk * get_buck(void);
-code_hunk * get_nil(void);
-code_hunk * get_true(void);
-code_hunk * get_false(void);
+code_hunk * push_buck(void);
+code_hunk * push_nil(void);
+code_hunk * push_true(void);
+code_hunk * push_false(void);
 
-code_hunk * get_self(void);
+code_hunk * push_self(void);
 
 code_hunk * push_i_thing(acme_int i);
 code_hunk * push_f_thing(acme_float f);

@@ -65,7 +65,7 @@ code_hunk * assign_lexpr(lexpr_hunk *lh, const char *assignop, code_hunk *ch_r) 
             return ret;
         }
         /* Didn't find it in the local vars, so the target is self */
-        self_ch = get_self();
+        self_ch = push_self();
     }
     /* Not a local variable */
     /* Push a NULL onto the stack */
