@@ -5,7 +5,7 @@ all: acme
 
 # Note that lex requires _POSIX_SOURCE, as it references fileno
 acme: lex.yy.o y.tab.o acme_error.o assign.o code_hunk.o compiler_init.o function.o label.o misc.o variable_table.o ../get_symbol.o
-	$(CC) -o acme lex.yy.o y.tab.o acme_error.o assign.o code_hunk.o compiler_init.o function.o label.o misc.o variable_table.o ../get_symbol.o -lgc
+	$(CC) -o acme lex.yy.o y.tab.o acme_error.o assign.o code_hunk.o compiler_init.o function.o label.o misc.o variable_table.o ../get_symbol.o ../fnv1.o -lgc
 
 y.tab.o: y.tab.c
 	$(CC) -c -D_POSIX_SOURCE -DYYDEBUG y.tab.c

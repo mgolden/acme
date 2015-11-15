@@ -456,11 +456,11 @@ initializer_expression:
   }
   | TOKLBRACK TOKRBRACK
   {
-    $$ = new_array_thing(0);
+    $$ = push_array_thing(0);
   }
   | TOKLBRACE TOKRBRACE
   {
-    $$ = new_hash_thing(0);
+    $$ = push_hash_thing(0);
   }
   ;
 
@@ -555,28 +555,28 @@ false:
 i:
   TOKI
   {
-    $$ = new_i_thing($1);
+    $$ = push_i_thing($1);
   }
   ;
 
 f:
   TOKF
   {
-    $$ = new_f_thing($1);
+    $$ = push_f_thing($1);
   }
   ;
 
 s:
   TOKS
   {
-    $$ = new_s_thing($1);
+    $$ = push_s_thing($1);
   }
   ;
 
 symbol:
   TOKSYMBOL
   {
-    $$ = new_sym_thing($1);
+    $$ = push_sym_thing($1);
   }
   ;
 
@@ -798,7 +798,7 @@ expr:
 function_call:
   pure_lexpr argument_list optional_block
   {
-    $$ = CCH(CCH(CCH(CCH($2, $3), $1->self_ch), new_sym_thing($1->name)), call_send($2->comexprs));
+    $$ = CCH(CCH(CCH(CCH($2, $3), $1->self_ch), push_sym_thing($1->name)), call_send($2->comexprs));
     $$->comexprs = 0;
     /* Free the lexpr_hunk, but not the code_hunk it contains */
     if($1->subscript_ch) {
@@ -812,7 +812,7 @@ function_call:
 
 optional_block:
   {
-    $$ = get_empty_block();
+    $$ = push_empty_block();
   }
   | do optional_pipe_param_list TOKEOL internal_statement_list TOKEND
   {
@@ -839,11 +839,11 @@ optional_pipe_param_list:
 array:
   TOKLBRACK TOKRBRACK
   {
-    $$ = new_array_thing(0);
+    $$ = push_array_thing(0);
   }
   | TOKLBRACK expr_list TOKRBRACK
   {
-    $$ = CCH($2, new_array_thing($2->comexprs));
+    $$ = CCH($2, push_array_thing($2->comexprs));
     $$->comexprs = 0;
   }
   ;
@@ -855,13 +855,13 @@ expr_list:
   }
   | pure_expr_list TOKCOMMA hash_list
   {
-    code_hunk *ch = CCH($3, new_hash_thing($3->comexprs));
+    code_hunk *ch = CCH($3, push_hash_thing($3->comexprs));
     ch->comexprs = 1; /* We've made a single hash out of the comexprs */
     $$ = CCH(ch, $1); /* Note: pushing on stack in reverse order */
   }
   | hash_list
   {
-    $$ = CCH($1, new_hash_thing($1->comexprs));
+    $$ = CCH($1, push_hash_thing($1->comexprs));
     $$->comexprs = 1; /* We've made a single hash out of the comexprs */
   }
   ;
@@ -883,11 +883,11 @@ pure_expr_list:
 hash:
   TOKLBRACE TOKRBRACE
   {
-    $$ = new_hash_thing(0);
+    $$ = push_hash_thing(0);
   }
   | TOKLBRACE hash_list TOKRBRACE
   {
-    $$ = CCH($2, new_hash_thing($2->comexprs));
+    $$ = CCH($2, push_hash_thing($2->comexprs));
     $$->comexprs = 0;
   }
   ;
