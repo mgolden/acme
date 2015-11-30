@@ -1,0 +1,218 @@
+   1              		.file	"test.c"
+   2              	# GNU C11 (Ubuntu 5.2.1-22ubuntu2) version 5.2.1 20151010 (x86_64-linux-gnu)
+   3              	#	compiled by GNU C version 5.2.1 20151010, GMP version 6.0.0, MPFR version 3.1.3, MPC version 1.0.
+   4              	# GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+   5              	# options passed:  -imultiarch x86_64-linux-gnu test.c -mtune=generic
+   6              	# -march=x86-64 -g -O9 -fverbose-asm -fstack-protector-strong -Wformat
+   7              	# -Wformat-security
+   8              	# options enabled:  -faggressive-loop-optimizations -falign-labels
+   9              	# -fasynchronous-unwind-tables -fauto-inc-dec -fbranch-count-reg
+  10              	# -fcaller-saves -fchkp-check-incomplete-type -fchkp-check-read
+  11              	# -fchkp-check-write -fchkp-instrument-calls -fchkp-narrow-bounds
+  12              	# -fchkp-optimize -fchkp-store-bounds -fchkp-use-static-bounds
+  13              	# -fchkp-use-static-const-bounds -fchkp-use-wrappers
+  14              	# -fcombine-stack-adjustments -fcommon -fcompare-elim -fcprop-registers
+  15              	# -fcrossjumping -fcse-follow-jumps -fdefer-pop
+  16              	# -fdelete-null-pointer-checks -fdevirtualize -fdevirtualize-speculatively
+  17              	# -fdwarf2-cfi-asm -fearly-inlining -feliminate-unused-debug-types
+  18              	# -fexpensive-optimizations -fforward-propagate -ffunction-cse -fgcse
+  19              	# -fgcse-after-reload -fgcse-lm -fgnu-runtime -fgnu-unique
+  20              	# -fguess-branch-probability -fhoist-adjacent-loads -fident -fif-conversion
+  21              	# -fif-conversion2 -findirect-inlining -finline -finline-atomics
+  22              	# -finline-functions -finline-functions-called-once
+  23              	# -finline-small-functions -fipa-cp -fipa-cp-alignment -fipa-cp-clone
+  24              	# -fipa-icf -fipa-icf-functions -fipa-icf-variables -fipa-profile
+  25              	# -fipa-pure-const -fipa-ra -fipa-reference -fipa-sra -fira-hoist-pressure
+  26              	# -fira-share-save-slots -fira-share-spill-slots
+  27              	# -fisolate-erroneous-paths-dereference -fivopts -fkeep-static-consts
+  28              	# -fleading-underscore -flifetime-dse -flra-remat -flto-odr-type-merging
+  29              	# -fmath-errno -fmerge-constants -fmerge-debug-strings
+  30              	# -fmove-loop-invariants -fomit-frame-pointer -foptimize-sibling-calls
+  31              	# -foptimize-strlen -fpartial-inlining -fpeephole -fpeephole2
+  32              	# -fpredictive-commoning -fprefetch-loop-arrays -free -freg-struct-return
+  33              	# -freorder-blocks -freorder-blocks-and-partition -freorder-functions
+  34              	# -frerun-cse-after-loop -fsched-critical-path-heuristic
+  35              	# -fsched-dep-count-heuristic -fsched-group-heuristic -fsched-interblock
+  36              	# -fsched-last-insn-heuristic -fsched-rank-heuristic -fsched-spec
+  37              	# -fsched-spec-insn-heuristic -fsched-stalled-insns-dep -fschedule-fusion
+  38              	# -fschedule-insns2 -fsemantic-interposition -fshow-column -fshrink-wrap
+  39              	# -fsigned-zeros -fsplit-ivs-in-unroller -fsplit-wide-types -fssa-phiopt
+  40              	# -fstack-protector-strong -fstdarg-opt -fstrict-aliasing -fstrict-overflow
+  41              	# -fstrict-volatile-bitfields -fsync-libcalls -fthread-jumps
+  42              	# -ftoplevel-reorder -ftrapping-math -ftree-bit-ccp -ftree-builtin-call-dce
+  43              	# -ftree-ccp -ftree-ch -ftree-coalesce-vars -ftree-copy-prop
+  44              	# -ftree-copyrename -ftree-cselim -ftree-dce -ftree-dominator-opts
+  45              	# -ftree-dse -ftree-forwprop -ftree-fre -ftree-loop-distribute-patterns
+  46              	# -ftree-loop-if-convert -ftree-loop-im -ftree-loop-ivcanon
+  47              	# -ftree-loop-optimize -ftree-loop-vectorize -ftree-parallelize-loops=
+  48              	# -ftree-partial-pre -ftree-phiprop -ftree-pre -ftree-pta -ftree-reassoc
+  49              	# -ftree-scev-cprop -ftree-sink -ftree-slp-vectorize -ftree-slsr -ftree-sra
+  50              	# -ftree-switch-conversion -ftree-tail-merge -ftree-ter -ftree-vrp
+  51              	# -funit-at-a-time -funswitch-loops -funwind-tables -fvar-tracking
+  52              	# -fvar-tracking-assignments -fverbose-asm -fzero-initialized-in-bss
+  53              	# -m128bit-long-double -m64 -m80387 -malign-stringops
+  54              	# -mavx256-split-unaligned-load -mavx256-split-unaligned-store
+  55              	# -mfancy-math-387 -mfp-ret-in-387 -mfxsr -mglibc -mieee-fp
+  56              	# -mlong-double-80 -mmmx -mno-sse4 -mpush-args -mred-zone -msse -msse2
+  57              	# -mtls-direct-seg-refs -mvzeroupper
+  58              	
+  59              		.text
+  60              	.Ltext0:
+  61              		.section	.text.unlikely,"ax",@progbits
+  62              	.LCOLDB0:
+  63              		.text
+  64              	.LHOTB0:
+  65              		.p2align 4,,15
+  66              		.section	.text.unlikely
+  67              	.Ltext_cold0:
+  68              		.text
+  69              		.globl	baz
+  71              	baz:
+  72              	.LFB64:
+  73              		.file 1 "test.c"
+   1:test.c        **** #include "../acme.h"
+   2:test.c        **** 
+   3:test.c        **** #include <setjmp.h>
+   4:test.c        **** 
+   5:test.c        **** typedef struct _block_ret {
+   6:test.c        ****     thing t;
+   7:test.c        ****     acme_int ret_type;
+   8:test.c        **** } block_ret;
+   9:test.c        **** 
+  10:test.c        **** 
+  11:test.c        **** block_ret baz(jmp_buf buf, thing t, acme_int i) {
+  74              		.loc 1 11 0
+  75              		.cfi_startproc
+  76              	.LVL0:
+  77              		.loc 1 11 0
+  78 0000 4889F8   		movq	%rdi, %rax	# .result_ptr, .result_ptr
+  12:test.c        ****     block_ret br;
+  13:test.c        ****     br.t = t;
+  79              		.loc 1 13 0
+  80 0003 48895424 		movq	%rdx, -40(%rsp)	# t, br.t
+  80      D8
+  81 0008 48894C24 		movq	%rcx, -32(%rsp)	# t, br.t
+  81      E0
+  82              	.LVL1:
+  14:test.c        ****     br.ret_type = i;
+  15:test.c        ****     return br;
+  83              		.loc 1 15 0
+  84 000d 488910   		movq	%rdx, (%rax)	# tmp94, <retval>
+  85              	.LVL2:
+  86 0010 48894808 		movq	%rcx, 8(%rax)	# br, <retval>
+  87 0014 4C894710 		movq	%r8, 16(%rdi)	# i, <retval>
+  88              	.LVL3:
+  16:test.c        **** }
+  89              		.loc 1 16 0
+  90 0018 C3       		ret
+  91              		.cfi_endproc
+  92              	.LFE64:
+  94              		.section	.text.unlikely
+  95              	.LCOLDE0:
+  96              		.text
+  97              	.LHOTE0:
+  98              		.section	.text.unlikely
+  99              	.LCOLDB1:
+ 100              		.text
+ 101              	.LHOTB1:
+ 102 0019 0F1F8000 		.p2align 4,,15
+ 102      000000
+ 103              		.globl	foo
+ 105              	foo:
+ 106              	.LFB65:
+  17:test.c        **** 
+  18:test.c        **** block_ret foo(long long a, long long b, long long c, long long d, long long e, long long f, long lo
+ 107              		.loc 1 18 0
+ 108              		.cfi_startproc
+ 109              	.LVL4:
+ 110 0020 53       		pushq	%rbx	#
+ 111              		.cfi_def_cfa_offset 16
+ 112              		.cfi_offset 3, -16
+ 113              		.loc 1 18 0
+ 114 0021 4889FB   		movq	%rdi, %rbx	# .result_ptr, .result_ptr
+  19:test.c        ****     block_ret br;
+  20:test.c        ****     br.t.u.i = 10;
+  21:test.c        ****     br.t.a_list = malloc(10);
+ 115              		.loc 1 21 0
+ 116 0024 BF0A0000 		movl	$10, %edi	#,
+ 116      00
+ 117              	.LVL5:
+ 118 0029 E8000000 		call	malloc	#
+ 118      00
+ 119              	.LVL6:
+  22:test.c        ****     br.ret_type = 1;
+  23:test.c        ****     return br;
+ 120              		.loc 1 23 0
+ 121 002e 48C7030A 		movq	$10, (%rbx)	#, MEM[(struct _block_ret *)&<retval>]
+ 121      000000
+ 122 0035 48894308 		movq	%rax, 8(%rbx)	# tmp98, MEM[(struct _block_ret *)&<retval> + 8B]
+  24:test.c        **** }
+ 123              		.loc 1 24 0
+ 124 0039 4889D8   		movq	%rbx, %rax	# .result_ptr,
+ 125              	.LVL7:
+  23:test.c        **** }
+ 126              		.loc 1 23 0
+ 127 003c 48C74310 		movq	$1, 16(%rbx)	#, MEM[(struct _block_ret *)&<retval> + 16B]
+ 127      01000000 
+ 128              	.LVL8:
+ 129              		.loc 1 24 0
+ 130 0044 5B       		popq	%rbx	#
+ 131              		.cfi_def_cfa_offset 8
+ 132              	.LVL9:
+ 133 0045 C3       		ret
+ 134              		.cfi_endproc
+ 135              	.LFE65:
+ 137              		.section	.text.unlikely
+ 138              	.LCOLDE1:
+ 139              		.text
+ 140              	.LHOTE1:
+ 141              		.section	.text.unlikely
+ 142              	.LCOLDB2:
+ 143              		.text
+ 144              	.LHOTB2:
+ 145 0046 662E0F1F 		.p2align 4,,15
+ 145      84000000 
+ 145      0000
+ 146              		.globl	test
+ 148              	test:
+ 149              	.LFB66:
+  25:test.c        **** 
+  26:test.c        **** thing test(thing r) {
+ 150              		.loc 1 26 0
+ 151              		.cfi_startproc
+ 152              	.LVL10:
+  27:test.c        ****     block_ret br;
+  28:test.c        ****     br = foo(1,2,3,4,5,6,7,8,9);
+  29:test.c        ****     thing t;
+  30:test.c        ****     if(br.ret_type == 0) {
+  31:test.c        ****         t = br.t;
+  32:test.c        ****     }
+  33:test.c        ****     else {
+  34:test.c        ****         t = (thing){.a_list = NULL};
+  35:test.c        ****     }
+  36:test.c        ****     return(t);
+  37:test.c        **** }
+ 153              		.loc 1 37 0
+ 154 0050 31C0     		xorl	%eax, %eax	#
+ 155 0052 31D2     		xorl	%edx, %edx	#
+ 156 0054 C3       		ret
+ 157              		.cfi_endproc
+ 158              	.LFE66:
+ 160              		.section	.text.unlikely
+ 161              	.LCOLDE2:
+ 162              		.text
+ 163              	.LHOTE2:
+ 164              	.Letext0:
+ 165              		.section	.text.unlikely
+ 166              	.Letext_cold0:
+ 167              		.file 2 "/usr/lib/gcc/x86_64-linux-gnu/5/include/stddef.h"
+ 168              		.file 3 "/usr/include/x86_64-linux-gnu/bits/types.h"
+ 169              		.file 4 "/usr/include/libio.h"
+ 170              		.file 5 "/usr/include/stdint.h"
+ 171              		.file 6 "/usr/include/x86_64-linux-gnu/bits/sigset.h"
+ 172              		.file 7 "../uthash/src/uthash.h"
+ 173              		.file 8 "../acme.h"
+ 174              		.file 9 "/usr/include/x86_64-linux-gnu/bits/setjmp.h"
+ 175              		.file 10 "/usr/include/setjmp.h"
+ 176              		.file 11 "/usr/include/stdio.h"
+ 177              		.file 12 "/usr/include/stdlib.h"
