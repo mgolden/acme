@@ -1,8 +1,8 @@
-   1              		.file	"test.c"
+   1              		.file	"calling.c"
    2              	# GNU C11 (Ubuntu 5.2.1-22ubuntu2) version 5.2.1 20151010 (x86_64-linux-gnu)
    3              	#	compiled by GNU C version 5.2.1 20151010, GMP version 6.0.0, MPFR version 3.1.3, MPC version 1.0.
    4              	# GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
-   5              	# options passed:  -imultiarch x86_64-linux-gnu test.c -mtune=generic
+   5              	# options passed:  -imultiarch x86_64-linux-gnu calling.c -mtune=generic
    6              	# -march=x86-64 -g -O9 -fverbose-asm -fstack-protector-strong -Wformat
    7              	# -Wformat-security
    8              	# options enabled:  -faggressive-loop-optimizations -falign-labels
@@ -69,150 +69,136 @@
   69              		.globl	baz
   71              	baz:
   72              	.LFB64:
-  73              		.file 1 "test.c"
-   1:test.c        **** #include "../acme.h"
-   2:test.c        **** 
-   3:test.c        **** #include <setjmp.h>
-   4:test.c        **** 
-   5:test.c        **** typedef struct _block_ret {
-   6:test.c        ****     thing t;
-   7:test.c        ****     acme_int ret_type;
-   8:test.c        **** } block_ret;
-   9:test.c        **** 
-  10:test.c        **** 
-  11:test.c        **** block_ret baz(jmp_buf buf, thing t, acme_int i) {
-  74              		.loc 1 11 0
+  73              		.file 1 "calling.c"
+   1:calling.c     **** #include "../acme.h"
+   2:calling.c     **** 
+   3:calling.c     **** #include <setjmp.h>
+   4:calling.c     **** 
+   5:calling.c     **** struct _caller_env {
+   6:calling.c     ****     __jmp_buf env;
+   7:calling.c     ****     thing t;
+   8:calling.c     **** };
+   9:calling.c     **** typedef struct _caller_env caller_env[1];
+  10:calling.c     **** 
+  11:calling.c     **** typedef __jmp_buf block_env;
+  12:calling.c     **** 
+  13:calling.c     **** int64_t baz(caller_env c_env, thing t, int64_t i) {
+  74              		.loc 1 13 0
   75              		.cfi_startproc
   76              	.LVL0:
-  77              		.loc 1 11 0
-  78 0000 4889F8   		movq	%rdi, %rax	# .result_ptr, .result_ptr
-  12:test.c        ****     block_ret br;
-  13:test.c        ****     br.t = t;
-  79              		.loc 1 13 0
-  80 0003 48895424 		movq	%rdx, -40(%rsp)	# t, br.t
-  80      D8
-  81 0008 48894C24 		movq	%rcx, -32(%rsp)	# t, br.t
-  81      E0
-  82              	.LVL1:
-  14:test.c        ****     br.ret_type = i;
-  15:test.c        ****     return br;
-  83              		.loc 1 15 0
-  84 000d 488910   		movq	%rdx, (%rax)	# tmp94, <retval>
-  85              	.LVL2:
-  86 0010 48894808 		movq	%rcx, 8(%rax)	# br, <retval>
-  87 0014 4C894710 		movq	%r8, 16(%rdi)	# i, <retval>
-  88              	.LVL3:
-  16:test.c        **** }
-  89              		.loc 1 16 0
-  90 0018 C3       		ret
-  91              		.cfi_endproc
-  92              	.LFE64:
-  94              		.section	.text.unlikely
-  95              	.LCOLDE0:
-  96              		.text
-  97              	.LHOTE0:
-  98              		.section	.text.unlikely
-  99              	.LCOLDB1:
- 100              		.text
- 101              	.LHOTB1:
- 102 0019 0F1F8000 		.p2align 4,,15
- 102      000000
- 103              		.globl	foo
- 105              	foo:
- 106              	.LFB65:
-  17:test.c        **** 
-  18:test.c        **** block_ret foo(long long a, long long b, long long c, long long d, long long e, long long f, long lo
- 107              		.loc 1 18 0
- 108              		.cfi_startproc
- 109              	.LVL4:
- 110 0020 53       		pushq	%rbx	#
- 111              		.cfi_def_cfa_offset 16
- 112              		.cfi_offset 3, -16
- 113              		.loc 1 18 0
- 114 0021 4889FB   		movq	%rdi, %rbx	# .result_ptr, .result_ptr
-  19:test.c        ****     block_ret br;
-  20:test.c        ****     br.t.u.i = 10;
-  21:test.c        ****     br.t.a_list = malloc(10);
- 115              		.loc 1 21 0
- 116 0024 BF0A0000 		movl	$10, %edi	#,
- 116      00
- 117              	.LVL5:
- 118 0029 E8000000 		call	malloc	#
- 118      00
- 119              	.LVL6:
-  22:test.c        ****     br.ret_type = 1;
-  23:test.c        ****     return br;
- 120              		.loc 1 23 0
- 121 002e 48C7030A 		movq	$10, (%rbx)	#, MEM[(struct _block_ret *)&<retval>]
- 121      000000
- 122 0035 48894308 		movq	%rax, 8(%rbx)	# tmp98, MEM[(struct _block_ret *)&<retval> + 8B]
-  24:test.c        **** }
- 123              		.loc 1 24 0
- 124 0039 4889D8   		movq	%rbx, %rax	# .result_ptr,
- 125              	.LVL7:
-  23:test.c        **** }
- 126              		.loc 1 23 0
- 127 003c 48C74310 		movq	$1, 16(%rbx)	#, MEM[(struct _block_ret *)&<retval> + 16B]
- 127      01000000 
- 128              	.LVL8:
- 129              		.loc 1 24 0
- 130 0044 5B       		popq	%rbx	#
- 131              		.cfi_def_cfa_offset 8
- 132              	.LVL9:
- 133 0045 C3       		ret
- 134              		.cfi_endproc
- 135              	.LFE65:
- 137              		.section	.text.unlikely
- 138              	.LCOLDE1:
- 139              		.text
- 140              	.LHOTE1:
- 141              		.section	.text.unlikely
- 142              	.LCOLDB2:
- 143              		.text
- 144              	.LHOTB2:
- 145 0046 662E0F1F 		.p2align 4,,15
- 145      84000000 
- 145      0000
- 146              		.globl	test
- 148              	test:
- 149              	.LFB66:
-  25:test.c        **** 
-  26:test.c        **** thing test(thing r) {
- 150              		.loc 1 26 0
- 151              		.cfi_startproc
- 152              	.LVL10:
-  27:test.c        ****     block_ret br;
-  28:test.c        ****     br = foo(1,2,3,4,5,6,7,8,9);
-  29:test.c        ****     thing t;
-  30:test.c        ****     if(br.ret_type == 0) {
-  31:test.c        ****         t = br.t;
-  32:test.c        ****     }
-  33:test.c        ****     else {
-  34:test.c        ****         t = (thing){.a_list = NULL};
-  35:test.c        ****     }
-  36:test.c        ****     return(t);
-  37:test.c        **** }
- 153              		.loc 1 37 0
- 154 0050 31C0     		xorl	%eax, %eax	#
- 155 0052 31D2     		xorl	%edx, %edx	#
- 156 0054 C3       		ret
- 157              		.cfi_endproc
- 158              	.LFE66:
- 160              		.section	.text.unlikely
- 161              	.LCOLDE2:
- 162              		.text
- 163              	.LHOTE2:
- 164              	.Letext0:
- 165              		.section	.text.unlikely
- 166              	.Letext_cold0:
- 167              		.file 2 "/usr/lib/gcc/x86_64-linux-gnu/5/include/stddef.h"
- 168              		.file 3 "/usr/include/x86_64-linux-gnu/bits/types.h"
- 169              		.file 4 "/usr/include/libio.h"
- 170              		.file 5 "/usr/include/stdint.h"
- 171              		.file 6 "/usr/include/x86_64-linux-gnu/bits/sigset.h"
- 172              		.file 7 "../uthash/src/uthash.h"
- 173              		.file 8 "../acme.h"
- 174              		.file 9 "/usr/include/x86_64-linux-gnu/bits/setjmp.h"
- 175              		.file 10 "/usr/include/setjmp.h"
- 176              		.file 11 "/usr/include/stdio.h"
- 177              		.file 12 "/usr/include/stdlib.h"
+  77 0000 55       		pushq	%rbp	#
+  78              		.cfi_def_cfa_offset 16
+  79              		.cfi_offset 6, -16
+  80 0001 53       		pushq	%rbx	#
+  81              		.cfi_def_cfa_offset 24
+  82              		.cfi_offset 3, -24
+  83 0002 4889FB   		movq	%rdi, %rbx	# c_env, c_env
+  84 0005 4889CD   		movq	%rcx, %rbp	# i, i
+  85 0008 4883EC08 		subq	$8, %rsp	#,
+  86              		.cfi_def_cfa_offset 32
+  14:calling.c     ****     (*c_env).t.u.i = 7;
+  87              		.loc 1 14 0
+  88 000c 48C74740 		movq	$7, 64(%rdi)	#, c_env_2(D)->t.u.i
+  88      07000000 
+  15:calling.c     ****     (*c_env).t.a_list = malloc(20);
+  89              		.loc 1 15 0
+  90 0014 BF140000 		movl	$20, %edi	#,
+  90      00
+  91              	.LVL1:
+  92 0019 E8000000 		call	malloc	#
+  92      00
+  93              	.LVL2:
+  94 001e 48894348 		movq	%rax, 72(%rbx)	# tmp95, c_env_2(D)->t.a_list
+  16:calling.c     ****     return i;
+  17:calling.c     **** }
+  95              		.loc 1 17 0
+  96 0022 4883C408 		addq	$8, %rsp	#,
+  97              		.cfi_def_cfa_offset 24
+  98 0026 4889E8   		movq	%rbp, %rax	# i,
+  99 0029 5B       		popq	%rbx	#
+ 100              		.cfi_def_cfa_offset 16
+ 101              	.LVL3:
+ 102 002a 5D       		popq	%rbp	#
+ 103              		.cfi_def_cfa_offset 8
+ 104              	.LVL4:
+ 105 002b C3       		ret
+ 106              		.cfi_endproc
+ 107              	.LFE64:
+ 109              		.section	.text.unlikely
+ 110              	.LCOLDE0:
+ 111              		.text
+ 112              	.LHOTE0:
+ 113              		.section	.text.unlikely
+ 114              	.LCOLDB1:
+ 115              		.text
+ 116              	.LHOTB1:
+ 117 002c 0F1F4000 		.p2align 4,,15
+ 118              		.globl	foo
+ 120              	foo:
+ 121              	.LFB65:
+  18:calling.c     **** 
+  19:calling.c     **** int64_t foo(int64_t a, int64_t b, int64_t c, int64_t d, int64_t e, int64_t f, int64_t g, int64_t h,
+ 122              		.loc 1 19 0
+ 123              		.cfi_startproc
+ 124              	.LVL5:
+  20:calling.c     ****     int64_t j;
+  21:calling.c     ****     caller_env c_env;
+  22:calling.c     ****     thing t;
+  23:calling.c     ****     t.u.i = 6;
+  24:calling.c     ****     t.a_list = malloc(10);
+  25:calling.c     ****     j = baz(c_env, t, j);
+  26:calling.c     ****     return j;
+  27:calling.c     **** }
+ 125              		.loc 1 27 0
+ 126 0030 31C0     		xorl	%eax, %eax	#
+ 127 0032 C3       		ret
+ 128              		.cfi_endproc
+ 129              	.LFE65:
+ 131              		.section	.text.unlikely
+ 132              	.LCOLDE1:
+ 133              		.text
+ 134              	.LHOTE1:
+ 135              		.section	.text.unlikely
+ 136              	.LCOLDB2:
+ 137              		.text
+ 138              	.LHOTB2:
+ 139 0033 0F1F0066 		.p2align 4,,15
+ 139      2E0F1F84 
+ 139      00000000 
+ 139      00
+ 140              		.globl	test
+ 142              	test:
+ 143              	.LFB66:
+  28:calling.c     **** 
+  29:calling.c     **** thing test(thing r) {
+ 144              		.loc 1 29 0
+ 145              		.cfi_startproc
+ 146              	.LVL6:
+  30:calling.c     ****     int64_t k;
+  31:calling.c     ****     k = foo(1,2,3,4,5,6,7,8,9);
+  32:calling.c     ****     thing t;
+  33:calling.c     ****     t.u.i = k;
+  34:calling.c     ****     return(t);
+  35:calling.c     **** }
+ 147              		.loc 1 35 0
+ 148 0040 31C0     		xorl	%eax, %eax	#
+ 149 0042 31D2     		xorl	%edx, %edx	#
+ 150 0044 C3       		ret
+ 151              		.cfi_endproc
+ 152              	.LFE66:
+ 154              		.section	.text.unlikely
+ 155              	.LCOLDE2:
+ 156              		.text
+ 157              	.LHOTE2:
+ 158              	.Letext0:
+ 159              		.section	.text.unlikely
+ 160              	.Letext_cold0:
+ 161              		.file 2 "/usr/lib/gcc/x86_64-linux-gnu/5/include/stddef.h"
+ 162              		.file 3 "/usr/include/x86_64-linux-gnu/bits/types.h"
+ 163              		.file 4 "/usr/include/libio.h"
+ 164              		.file 5 "/usr/include/stdint.h"
+ 165              		.file 6 "../uthash/src/uthash.h"
+ 166              		.file 7 "../acme.h"
+ 167              		.file 8 "/usr/include/x86_64-linux-gnu/bits/setjmp.h"
+ 168              		.file 9 "/usr/include/stdio.h"
+ 169              		.file 10 "/usr/include/stdlib.h"

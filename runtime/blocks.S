@@ -26,7 +26,10 @@
 #define ACME_BLOCK_INVOKE $1
 
 /* Modeled on setjmp, difference: */
-/* returns a block_ret (zeroed out) */
+/* returns (int64_t) 0 */
+
+/* extern int64_t block_caller_yield_outer(caller_env c_env) */
+
 ENTRY (block_caller_yield_outer)
 	/* Save registers.  */
 	movq %rbx, (JB_RBX*8)(%rdi)
@@ -59,20 +62,16 @@ ENTRY (block_caller_yield_outer)
 	PTR_MANGLE (%RAX_LP)
 #endif
 	movq %rax, (JB_PC*8)(%rdi)
-
-	/* rdi is the pointer to the returned block_ret - zero out */
+        /* Return 0 */
 	xorq %rax, %rax
-
-	movq %rax, (%rdi)
-	movq %rax, 8(%rdi)
-	movq %rax, 16(%rdi)
-	movq %rdi, %rax
 	ret
 END (block_caller_yield_outer)
 
 
-/* Modeled on setjmp, difference: */
-/* returns an acme_int (set to zero) */
+/* Identical to above */
+
+/* extern int64_t block_define(block_env b_env) */
+
 ENTRY (block_define)
 	/* Save registers.  */
 	movq %rbx, (JB_RBX*8)(%rdi)
@@ -105,7 +104,7 @@ ENTRY (block_define)
 	PTR_MANGLE (%RAX_LP)
 #endif
 	movq %rax, (JB_PC*8)(%rdi)
-
+        /* Return 0 */
 	xorq %rax, %rax
 	ret
 END (block_define)
@@ -113,7 +112,10 @@ END (block_define)
 
 /* Modeled on longjmp with two differences */
 /* (a) do not reset SP (top of stack stays as it was) */
-/* (b) return a block_ret with the ret_type set to ACME_BLOCK_INVOKE */
+/* (b) return ACME_BLOCK_INVOKE */
+
+/* extern void block_caller_yield_inner(block_env b_env) */
+
 	.text
 ENTRY(block_caller_yield_inner)
 	/* Restore registers.  */
@@ -150,10 +152,7 @@ ENTRY(block_caller_yield_inner)
 	movq (JB_R14*8)(%rdi),%r14
 	movq (JB_R15*8)(%rdi),%r15
 	/* Set return value for setjmp.  */
-	movq %rdi, %rax	# .result_ptr, .result_ptr
-	movq %rdx, (%rax)	# tmp94, <retval>
-	movq %rcx, 8(%rax)	# br, <retval>
-	movq ACME_BLOCK_INVOKE, 16(%rdi)	# i, <retval>
+	movq ACME_BLOCK_INVOKE, %rax
 	/* DO NOT SET THE STACK POINTER, only BP, so NO: mov %R8_LP,%RSP_LP */
 	movq %r9,%rbp
 	LIBC_PROBE (longjmp_target, 3,
@@ -163,7 +162,10 @@ END (block_caller_yield_inner)
 
 
 /* Modeled on longjmp, difference: */
-/* (a) returns an acme_int instead of int */
+/* (a) returns an int64_t instead of int */
+
+/* extern void block_caller_leave(block_env b_env, int64_t ret_type) */
+
 	.text
 ENTRY(block_caller_leave)
 	/* Restore registers.  */
@@ -200,7 +202,8 @@ ENTRY(block_caller_leave)
 	movq (JB_R14*8)(%rdi),%r14
 	movq (JB_R15*8)(%rdi),%r15
 	/* Set return value for setjmp.  */
-	mov %rsi, %rax
+	movq %rsi, %rax
+        /* Finish registers and go */
 	mov %R8_LP,%RSP_LP
 	movq %r9,%rbp
 	LIBC_PROBE (longjmp_target, 3,
@@ -210,7 +213,11 @@ END (block_caller_leave)
 
 
 /* Modeled on longjmp.  Differences */
-/* returns a block_ret set with thing and acme_int paramters */
+/* (a) returns a int64_t */
+/* (b) Uses a caller_env, so sets the value of the thing therein */
+
+/* extern void block_leave(caller_env c_env, thing t, int64_t ret_type) */
+
 	.text
 ENTRY(block_leave)
 	/* Restore registers.  */
@@ -247,11 +254,11 @@ ENTRY(block_leave)
 	movq (JB_R14*8)(%rdi),%r14
 	movq (JB_R15*8)(%rdi),%r15
 	/* Set return value for setjmp.  */
-	movq %rdi, %rax	# .result_ptr, .result_ptr
-	movq %rdx, (%rax)	# tmp94, <retval>
-	movq %rcx, 8(%rax)	# br, <retval>
-	movq %r8, 16(%rax)	# i, <retval>
-
+	movq %rcx, %rax
+	/* Stick the thing into the caller_env */
+	movq %rsi, 64(%rdi)
+	movq %rdx, 72(%rdi)
+        /* Finish registers and go */
 	mov %R8_LP,%RSP_LP
 	movq %r9,%rbp
 	LIBC_PROBE (longjmp_target, 3,

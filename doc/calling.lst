@@ -1,8 +1,8 @@
-   1              		.file	"test.c"
+   1              		.file	"calling.c"
    2              	# GNU C11 (Ubuntu 5.2.1-22ubuntu2) version 5.2.1 20151010 (x86_64-linux-gnu)
    3              	#	compiled by GNU C version 5.2.1 20151010, GMP version 6.0.0, MPFR version 3.1.3, MPC version 1.0.
    4              	# GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
-   5              	# options passed:  -imultiarch x86_64-linux-gnu test.c -mtune=generic
+   5              	# options passed:  -imultiarch x86_64-linux-gnu calling.c -mtune=generic
    6              	# -march=x86-64 -g -O0 -fverbose-asm -fstack-protector-strong -Wformat
    7              	# -Wformat-security
    8              	# options enabled:  -faggressive-loop-optimizations
@@ -39,204 +39,193 @@
   39              		.globl	baz
   41              	baz:
   42              	.LFB2:
-  43              		.file 1 "test.c"
-   1:test.c        **** #include "../acme.h"
-   2:test.c        **** 
-   3:test.c        **** #include <setjmp.h>
-   4:test.c        **** 
-   5:test.c        **** typedef struct _block_ret {
-   6:test.c        ****     thing t;
-   7:test.c        ****     acme_int ret_type;
-   8:test.c        **** } block_ret;
-   9:test.c        **** 
-  10:test.c        **** 
-  11:test.c        **** block_ret baz(jmp_buf buf, thing t, acme_int i) {
-  44              		.loc 1 11 0
+  43              		.file 1 "calling.c"
+   1:calling.c     **** #include "../acme.h"
+   2:calling.c     **** 
+   3:calling.c     **** #include <setjmp.h>
+   4:calling.c     **** 
+   5:calling.c     **** struct _caller_env {
+   6:calling.c     ****     __jmp_buf env;
+   7:calling.c     ****     thing t;
+   8:calling.c     **** };
+   9:calling.c     **** typedef struct _caller_env caller_env[1];
+  10:calling.c     **** 
+  11:calling.c     **** typedef __jmp_buf block_env;
+  12:calling.c     **** 
+  13:calling.c     **** int64_t baz(caller_env c_env, thing t, int64_t i) {
+  44              		.loc 1 13 0
   45              		.cfi_startproc
   46 0000 55       		pushq	%rbp	#
   47              		.cfi_def_cfa_offset 16
   48              		.cfi_offset 6, -16
   49 0001 4889E5   		movq	%rsp, %rbp	#,
   50              		.cfi_def_cfa_register 6
-  51 0004 48897DD8 		movq	%rdi, -40(%rbp)	# .result_ptr, .result_ptr
-  52 0008 488975D0 		movq	%rsi, -48(%rbp)	# buf, buf
-  53 000c 488955C0 		movq	%rdx, -64(%rbp)	# t, t
-  54 0010 48894DC8 		movq	%rcx, -56(%rbp)	# t, t
-  55 0014 4C8945B8 		movq	%r8, -72(%rbp)	# i, i
-  12:test.c        ****     block_ret br;
-  13:test.c        ****     br.t = t;
-  56              		.loc 1 13 0
-  57 0018 488B45C0 		movq	-64(%rbp), %rax	# t, tmp87
-  58 001c 488B55C8 		movq	-56(%rbp), %rdx	# t,
-  59 0020 488945E0 		movq	%rax, -32(%rbp)	# tmp87, br.t
-  60 0024 488955E8 		movq	%rdx, -24(%rbp)	#, br.t
-  14:test.c        ****     br.ret_type = i;
-  61              		.loc 1 14 0
-  62 0028 488B45B8 		movq	-72(%rbp), %rax	# i, tmp88
-  63 002c 488945F0 		movq	%rax, -16(%rbp)	# tmp88, br.ret_type
-  15:test.c        ****     return br;
-  64              		.loc 1 15 0
-  65 0030 488B45D8 		movq	-40(%rbp), %rax	# .result_ptr, tmp89
-  66 0034 488B55E0 		movq	-32(%rbp), %rdx	# br, tmp90
-  67 0038 488910   		movq	%rdx, (%rax)	# tmp90, <retval>
-  68 003b 488B55E8 		movq	-24(%rbp), %rdx	# br, tmp91
-  69 003f 48895008 		movq	%rdx, 8(%rax)	# tmp91, <retval>
-  70 0043 488B55F0 		movq	-16(%rbp), %rdx	# br, tmp92
-  71 0047 48895010 		movq	%rdx, 16(%rax)	# tmp92, <retval>
-  16:test.c        **** }
-  72              		.loc 1 16 0
-  73 004b 488B45D8 		movq	-40(%rbp), %rax	# .result_ptr,
-  74 004f 5D       		popq	%rbp	#
-  75              		.cfi_def_cfa 7, 8
-  76 0050 C3       		ret
-  77              		.cfi_endproc
-  78              	.LFE2:
-  80              		.globl	foo
-  82              	foo:
-  83              	.LFB3:
-  17:test.c        **** 
-  18:test.c        **** block_ret foo(long long a, long long b, long long c, long long d, long long e, long long f, long lo
-  84              		.loc 1 18 0
-  85              		.cfi_startproc
-  86 0051 55       		pushq	%rbp	#
-  87              		.cfi_def_cfa_offset 16
-  88              		.cfi_offset 6, -16
-  89 0052 4889E5   		movq	%rsp, %rbp	#,
-  90              		.cfi_def_cfa_register 6
-  91 0055 4883EC50 		subq	$80, %rsp	#,
-  92 0059 48897DD8 		movq	%rdi, -40(%rbp)	# .result_ptr, .result_ptr
-  93 005d 488975D0 		movq	%rsi, -48(%rbp)	# a, a
-  94 0061 488955C8 		movq	%rdx, -56(%rbp)	# b, b
-  95 0065 48894DC0 		movq	%rcx, -64(%rbp)	# c, c
-  96 0069 4C8945B8 		movq	%r8, -72(%rbp)	# d, d
-  97 006d 4C894DB0 		movq	%r9, -80(%rbp)	# e, e
-  19:test.c        ****     block_ret br;
-  20:test.c        ****     br.t.u.i = 10;
-  98              		.loc 1 20 0
-  99 0071 48C745E0 		movq	$10, -32(%rbp)	#, br.t.u.i
-  99      0A000000 
-  21:test.c        ****     br.t.a_list = malloc(10);
- 100              		.loc 1 21 0
- 101 0079 BF0A0000 		movl	$10, %edi	#,
- 101      00
- 102 007e E8000000 		call	malloc	#
+  51 0004 4883EC20 		subq	$32, %rsp	#,
+  52 0008 48897DF8 		movq	%rdi, -8(%rbp)	# c_env, c_env
+  53 000c 4889F0   		movq	%rsi, %rax	# t, tmp91
+  54 000f 4889D6   		movq	%rdx, %rsi	# t, tmp92
+  55 0012 4889F2   		movq	%rsi, %rdx	# tmp92,
+  56 0015 488945E0 		movq	%rax, -32(%rbp)	# tmp90, t
+  57 0019 488955E8 		movq	%rdx, -24(%rbp)	#, t
+  58 001d 48894DF0 		movq	%rcx, -16(%rbp)	# i, i
+  14:calling.c     ****     (*c_env).t.u.i = 7;
+  59              		.loc 1 14 0
+  60 0021 488B45F8 		movq	-8(%rbp), %rax	# c_env, tmp93
+  61 0025 48C74040 		movq	$7, 64(%rax)	#, c_env_2(D)->t.u.i
+  61      07000000 
+  15:calling.c     ****     (*c_env).t.a_list = malloc(20);
+  62              		.loc 1 15 0
+  63 002d BF140000 		movl	$20, %edi	#,
+  63      00
+  64 0032 E8000000 		call	malloc	#
+  64      00
+  65 0037 4889C2   		movq	%rax, %rdx	# tmp94, D.3568
+  66 003a 488B45F8 		movq	-8(%rbp), %rax	# c_env, tmp95
+  67 003e 48895048 		movq	%rdx, 72(%rax)	# D.3568, c_env_2(D)->t.a_list
+  16:calling.c     ****     return i;
+  68              		.loc 1 16 0
+  69 0042 488B45F0 		movq	-16(%rbp), %rax	# i, D.3569
+  17:calling.c     **** }
+  70              		.loc 1 17 0
+  71 0046 C9       		leave
+  72              		.cfi_def_cfa 7, 8
+  73 0047 C3       		ret
+  74              		.cfi_endproc
+  75              	.LFE2:
+  77              		.globl	foo
+  79              	foo:
+  80              	.LFB3:
+  18:calling.c     **** 
+  19:calling.c     **** int64_t foo(int64_t a, int64_t b, int64_t c, int64_t d, int64_t e, int64_t f, int64_t g, int64_t h,
+  81              		.loc 1 19 0
+  82              		.cfi_startproc
+  83 0048 55       		pushq	%rbp	#
+  84              		.cfi_def_cfa_offset 16
+  85              		.cfi_offset 6, -16
+  86 0049 4889E5   		movq	%rsp, %rbp	#,
+  87              		.cfi_def_cfa_register 6
+  88 004c 4881ECB0 		subq	$176, %rsp	#,
+  88      000000
+  89 0053 4889BD78 		movq	%rdi, -136(%rbp)	# a, a
+  89      FFFFFF
+  90 005a 4889B570 		movq	%rsi, -144(%rbp)	# b, b
+  90      FFFFFF
+  91 0061 48899568 		movq	%rdx, -152(%rbp)	# c, c
+  91      FFFFFF
+  92 0068 48898D60 		movq	%rcx, -160(%rbp)	# d, d
+  92      FFFFFF
+  93 006f 4C898558 		movq	%r8, -168(%rbp)	# e, e
+  93      FFFFFF
+  94 0076 4C898D50 		movq	%r9, -176(%rbp)	# f, f
+  94      FFFFFF
+  95              		.loc 1 19 0
+  96 007d 64488B04 		movq	%fs:40, %rax	#, tmp97
+  96      25280000 
+  96      00
+  97 0086 488945F8 		movq	%rax, -8(%rbp)	# tmp97, D.3572
+  98 008a 31C0     		xorl	%eax, %eax	# tmp97
+  20:calling.c     ****     int64_t j;
+  21:calling.c     ****     caller_env c_env;
+  22:calling.c     ****     thing t;
+  23:calling.c     ****     t.u.i = 6;
+  99              		.loc 1 23 0
+ 100 008c 48C74590 		movq	$6, -112(%rbp)	#, t.u.i
+ 100      06000000 
+  24:calling.c     ****     t.a_list = malloc(10);
+ 101              		.loc 1 24 0
+ 102 0094 BF0A0000 		movl	$10, %edi	#,
  102      00
- 103 0083 488945E8 		movq	%rax, -24(%rbp)	# D.3572, br.t.a_list
-  22:test.c        ****     br.ret_type = 1;
- 104              		.loc 1 22 0
- 105 0087 48C745F0 		movq	$1, -16(%rbp)	#, br.ret_type
- 105      01000000 
-  23:test.c        ****     return br;
- 106              		.loc 1 23 0
- 107 008f 488B45D8 		movq	-40(%rbp), %rax	# .result_ptr, tmp89
- 108 0093 488B55E0 		movq	-32(%rbp), %rdx	# br, tmp90
- 109 0097 488910   		movq	%rdx, (%rax)	# tmp90, <retval>
- 110 009a 488B55E8 		movq	-24(%rbp), %rdx	# br, tmp91
- 111 009e 48895008 		movq	%rdx, 8(%rax)	# tmp91, <retval>
- 112 00a2 488B55F0 		movq	-16(%rbp), %rdx	# br, tmp92
- 113 00a6 48895010 		movq	%rdx, 16(%rax)	# tmp92, <retval>
-  24:test.c        **** }
- 114              		.loc 1 24 0
- 115 00aa 488B45D8 		movq	-40(%rbp), %rax	# .result_ptr,
- 116 00ae C9       		leave
- 117              		.cfi_def_cfa 7, 8
- 118 00af C3       		ret
- 119              		.cfi_endproc
- 120              	.LFE3:
- 122              		.globl	test
- 124              	test:
- 125              	.LFB4:
-  25:test.c        **** 
-  26:test.c        **** thing test(thing r) {
- 126              		.loc 1 26 0
- 127              		.cfi_startproc
- 128 00b0 55       		pushq	%rbp	#
- 129              		.cfi_def_cfa_offset 16
- 130              		.cfi_offset 6, -16
- 131 00b1 4889E5   		movq	%rsp, %rbp	#,
- 132              		.cfi_def_cfa_register 6
- 133 00b4 4883EC40 		subq	$64, %rsp	#,
- 134 00b8 4889F8   		movq	%rdi, %rax	# r, tmp91
- 135 00bb 4889F1   		movq	%rsi, %rcx	# r, tmp92
- 136 00be 4889CA   		movq	%rcx, %rdx	# tmp92,
- 137 00c1 488945C0 		movq	%rax, -64(%rbp)	# tmp90, r
- 138 00c5 488955C8 		movq	%rdx, -56(%rbp)	#, r
- 139              		.loc 1 26 0
- 140 00c9 64488B04 		movq	%fs:40, %rax	#, tmp96
- 140      25280000 
- 140      00
- 141 00d2 488945F8 		movq	%rax, -8(%rbp)	# tmp96, D.3575
- 142 00d6 31C0     		xorl	%eax, %eax	# tmp96
-  27:test.c        ****     block_ret br;
-  28:test.c        ****     br = foo(1,2,3,4,5,6,7,8,9);
- 143              		.loc 1 28 0
- 144 00d8 488D45E0 		leaq	-32(%rbp), %rax	#, tmp93
- 145 00dc 6A09     		pushq	$9	#
- 146 00de 6A08     		pushq	$8	#
- 147 00e0 6A07     		pushq	$7	#
- 148 00e2 6A06     		pushq	$6	#
- 149 00e4 41B90500 		movl	$5, %r9d	#,
+ 103 0099 E8000000 		call	malloc	#
+ 103      00
+ 104 009e 48894598 		movq	%rax, -104(%rbp)	# D.3570, t.a_list
+  25:calling.c     ****     j = baz(c_env, t, j);
+ 105              		.loc 1 25 0
+ 106 00a2 488B4D88 		movq	-120(%rbp), %rcx	# j, tmp91
+ 107 00a6 488B7590 		movq	-112(%rbp), %rsi	# t, tmp92
+ 108 00aa 488B5598 		movq	-104(%rbp), %rdx	# t, tmp93
+ 109 00ae 488D45A0 		leaq	-96(%rbp), %rax	#, tmp94
+ 110 00b2 4889C7   		movq	%rax, %rdi	# tmp94,
+ 111 00b5 E8000000 		call	baz	#
+ 111      00
+ 112 00ba 48894588 		movq	%rax, -120(%rbp)	# tmp95, j
+  26:calling.c     ****     return j;
+ 113              		.loc 1 26 0
+ 114 00be 488B4588 		movq	-120(%rbp), %rax	# j, D.3571
+  27:calling.c     **** }
+ 115              		.loc 1 27 0
+ 116 00c2 488B7DF8 		movq	-8(%rbp), %rdi	# D.3572, tmp98
+ 117 00c6 6448333C 		xorq	%fs:40, %rdi	#, tmp98
+ 117      25280000 
+ 117      00
+ 118 00cf 7405     		je	.L5	#,
+ 119 00d1 E8000000 		call	__stack_chk_fail	#
+ 119      00
+ 120              	.L5:
+ 121 00d6 C9       		leave
+ 122              		.cfi_def_cfa 7, 8
+ 123 00d7 C3       		ret
+ 124              		.cfi_endproc
+ 125              	.LFE3:
+ 127              		.globl	test
+ 129              	test:
+ 130              	.LFB4:
+  28:calling.c     **** 
+  29:calling.c     **** thing test(thing r) {
+ 131              		.loc 1 29 0
+ 132              		.cfi_startproc
+ 133 00d8 55       		pushq	%rbp	#
+ 134              		.cfi_def_cfa_offset 16
+ 135              		.cfi_offset 6, -16
+ 136 00d9 4889E5   		movq	%rsp, %rbp	#,
+ 137              		.cfi_def_cfa_register 6
+ 138 00dc 4883EC30 		subq	$48, %rsp	#,
+ 139 00e0 4889F8   		movq	%rdi, %rax	# r, tmp90
+ 140 00e3 4889F1   		movq	%rsi, %rcx	# r, tmp91
+ 141 00e6 4889CA   		movq	%rcx, %rdx	# tmp91,
+ 142 00e9 488945D0 		movq	%rax, -48(%rbp)	# tmp89, r
+ 143 00ed 488955D8 		movq	%rdx, -40(%rbp)	#, r
+  30:calling.c     ****     int64_t k;
+  31:calling.c     ****     k = foo(1,2,3,4,5,6,7,8,9);
+ 144              		.loc 1 31 0
+ 145 00f1 4883EC08 		subq	$8, %rsp	#,
+ 146 00f5 6A09     		pushq	$9	#
+ 147 00f7 6A08     		pushq	$8	#
+ 148 00f9 6A07     		pushq	$7	#
+ 149 00fb 41B90600 		movl	$6, %r9d	#,
  149      0000
- 150 00ea 41B80400 		movl	$4, %r8d	#,
+ 150 0101 41B80500 		movl	$5, %r8d	#,
  150      0000
- 151 00f0 B9030000 		movl	$3, %ecx	#,
+ 151 0107 B9040000 		movl	$4, %ecx	#,
  151      00
- 152 00f5 BA020000 		movl	$2, %edx	#,
+ 152 010c BA030000 		movl	$3, %edx	#,
  152      00
- 153 00fa BE010000 		movl	$1, %esi	#,
+ 153 0111 BE020000 		movl	$2, %esi	#,
  153      00
- 154 00ff 4889C7   		movq	%rax, %rdi	# tmp93,
- 155 0102 E8000000 		call	foo	#
+ 154 0116 BF010000 		movl	$1, %edi	#,
+ 154      00
+ 155 011b E8000000 		call	foo	#
  155      00
- 156 0107 4883C420 		addq	$32, %rsp	#,
-  29:test.c        ****     thing t;
-  30:test.c        ****     if(br.ret_type == 0) {
- 157              		.loc 1 30 0
- 158 010b 488B45F0 		movq	-16(%rbp), %rax	# br.ret_type, D.3574
- 159 010f 4885C0   		testq	%rax, %rax	# D.3574
- 160 0112 7512     		jne	.L6	#,
-  31:test.c        ****         t = br.t;
- 161              		.loc 1 31 0
- 162 0114 488B45E0 		movq	-32(%rbp), %rax	# br.t, tmp94
- 163 0118 488B55E8 		movq	-24(%rbp), %rdx	# br.t,
- 164 011c 488945D0 		movq	%rax, -48(%rbp)	# tmp94, t
- 165 0120 488955D8 		movq	%rdx, -40(%rbp)	#, t
- 166 0124 EB10     		jmp	.L7	#
- 167              	.L6:
-  32:test.c        ****     }
-  33:test.c        ****     else {
-  34:test.c        ****         t = (thing){.a_list = NULL};
- 168              		.loc 1 34 0
- 169 0126 48C745D0 		movq	$0, -48(%rbp)	#, t
- 169      00000000 
- 170 012e 48C745D8 		movq	$0, -40(%rbp)	#, t
- 170      00000000 
- 171              	.L7:
-  35:test.c        ****     }
-  36:test.c        ****     return(t);
- 172              		.loc 1 36 0
- 173 0136 488B45D0 		movq	-48(%rbp), %rax	# t, D.3565
- 174 013a 488B55D8 		movq	-40(%rbp), %rdx	# t, D.3565
-  37:test.c        **** }
- 175              		.loc 1 37 0
- 176 013e 488B75F8 		movq	-8(%rbp), %rsi	# D.3575, tmp97
- 177 0142 64483334 		xorq	%fs:40, %rsi	#, tmp97
- 177      25280000 
- 177      00
- 178 014b 7405     		je	.L9	#,
- 179 014d E8000000 		call	__stack_chk_fail	#
- 179      00
- 180              	.L9:
- 181 0152 C9       		leave
- 182              		.cfi_def_cfa 7, 8
- 183 0153 C3       		ret
- 184              		.cfi_endproc
- 185              	.LFE4:
- 187              	.Letext0:
- 188              		.file 2 "/usr/include/stdint.h"
- 189              		.file 3 "/usr/lib/gcc/x86_64-linux-gnu/5/include/stddef.h"
- 190              		.file 4 "/usr/include/x86_64-linux-gnu/bits/sigset.h"
- 191              		.file 5 "../uthash/src/uthash.h"
- 192              		.file 6 "../acme.h"
- 193              		.file 7 "/usr/include/x86_64-linux-gnu/bits/setjmp.h"
- 194              		.file 8 "/usr/include/setjmp.h"
+ 156 0120 4883C420 		addq	$32, %rsp	#,
+ 157 0124 488945E8 		movq	%rax, -24(%rbp)	# tmp92, k
+  32:calling.c     ****     thing t;
+  33:calling.c     ****     t.u.i = k;
+ 158              		.loc 1 33 0
+ 159 0128 488B45E8 		movq	-24(%rbp), %rax	# k, tmp93
+ 160 012c 488945F0 		movq	%rax, -16(%rbp)	# tmp93, t.u.i
+  34:calling.c     ****     return(t);
+ 161              		.loc 1 34 0
+ 162 0130 488B45F0 		movq	-16(%rbp), %rax	# t, D.3562
+ 163 0134 488B55F8 		movq	-8(%rbp), %rdx	# t, D.3562
+  35:calling.c     **** }
+ 164              		.loc 1 35 0
+ 165 0138 C9       		leave
+ 166              		.cfi_def_cfa 7, 8
+ 167 0139 C3       		ret
+ 168              		.cfi_endproc
+ 169              	.LFE4:
+ 171              	.Letext0:
+ 172              		.file 2 "/usr/include/stdint.h"
+ 173              		.file 3 "/usr/lib/gcc/x86_64-linux-gnu/5/include/stddef.h"
+ 174              		.file 4 "../uthash/src/uthash.h"
+ 175              		.file 5 "../acme.h"
+ 176              		.file 6 "/usr/include/x86_64-linux-gnu/bits/setjmp.h"
