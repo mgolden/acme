@@ -256,8 +256,8 @@ ENTRY(block_leave)
 	/* Set return value for setjmp.  */
 	movq %rcx, %rax
 	/* Stick the thing into the caller_env */
-	movq %rsi, 64(%rdi)
-	movq %rdx, 72(%rdi)
+	movq %rsi, (JB_SIZE)(%rdi)
+	movq %rdx, (JB_SIZE+8)(%rdi)
         /* Finish registers and go */
 	mov %R8_LP,%RSP_LP
 	movq %r9,%rbp

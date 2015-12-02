@@ -42,29 +42,29 @@ end
 
 */
 
-thing *bar(thing x, thing y, jmp_buf block_env, jmp_buf caller_env, thing * p1, thing * p2, thing * p3) {
+
+
+thing bar(thing x, thing y, block_env b_env, caller_env c_env, thing * p1, thing * p2, thing * p3) {
     thing _acme_;
     thing _acme_z;
-    _acme_ = _acme_z = call_send(1, call_send(1, new_i_thing(10), new_sym_thing("+"), x, NULL), new_sym_thing("-"), y, NULL);
+    // _acme_ = _acme_z = call_send(1, call_send(1, new_i_thing(10), new_sym_thing("+"), x, NULL), new_sym_thing("-"), y, NULL);
     thing _acme_l;
     {
         /* This is the yield statement itself */
-        block_ret br = block_caller_yield_outer(caller_env);
-        thing ret = br.t;
-        acme_int ret_type = br.ret_type;
+        int64_t ret_type = block_caller_yield_outer(c_env);
         /* This sets caller env */
         if(!ret_type) {
             (*p1) = _acme_z;
             (*p2) = new_i_thing(2);
             (*p3) = new_i_thing(4);
-            block_caller_yield_inner(block_env);
-            }
+            block_caller_yield_inner(b_env);
         }
         else if(ret_type!=ACME_BLOCK_NEXT) {
-            block_caller_leave(block_env, ret_type)
+            printf("about to block_caller_leave %ld\n", ret_type);
+            block_caller_leave(b_env, ret_type);
         }
         else { /* BLOCK_NEXT */
-            _acme_l = ret;
+            _acme_l = (*c_env).t;
         }
     }
     thing _acme_m;
@@ -72,7 +72,9 @@ thing *bar(thing x, thing y, jmp_buf block_env, jmp_buf caller_env, thing * p1, 
     return _acme_;
 }
 
-thing *baz(void) {
+
+thing baz(void) {
+    printf("baz\n");
     thing _acme_;
     thing _acme_r;
     _acme_ = _acme_r = new_i_thing(10);
@@ -82,28 +84,37 @@ thing *baz(void) {
         thing _acme_v;
         thing _acme_w;
         thing _acme_z;
-        jmp_buf caller_env;
-        acme_int ret_type;
-        if(!(ret_type = block_define(block_env))) {
-            _acme_ = call_send(0, get_self(), new_sym_thing("bar"), r, s, block_env, caller_env, &v, &w, &z);
+        caller_env c_env;
+        block_env b_env;
+        int64_t ret_type;
+        if(!(ret_type = block_define(b_env))) {
+            // _acme_ = call_send(0, get_self(), new_sym_thing("bar"), r, s, block_env, caller_env, &v, &w, &z);
+            printf("about to call bar()\n");
+            _acme_ = bar(_acme_r, _acme_s, b_env, c_env, &_acme_v, &_acme_w, &_acme_z);
         }
         else if(ret_type == ACME_BLOCK_INVOKE) {
+            printf("inside block\n");
             /* Caller env will be magically set by the time we get here */
-            _acme_ = print(_acme_v);
-            _acme_ - call_send(1, _acme_v, new_sym_thing("=="), ...);
-            if(_acme_.u.i == 1) {
-                _acme_ = new_i_thing(5)
-                block_leave(caller_env, _acme_, ACME_BLOCK_RETURN);
+            _acme_ = print(_acme_z);
+            // _acme_ - call_send(1, _acme_v, new_sym_thing("=="), ...);
+            if(_acme_.u.i == 4) {
+                _acme_ = new_i_thing(5);
+                printf("about to block_return\n");
+                block_leave(c_env, _acme_, ACME_BLOCK_RETURN);
             }
             _acme_ = new_i_thing(7);
-            block_leave(caller_env, _acme_, ACME_BLOCK_NEXT);
+            printf("about to block_leave\n");
+            block_leave(c_env, _acme_, ACME_BLOCK_NEXT);
         }
         else if(ret_type == ACME_BLOCK_RETURN) {
+            print(_acme_);
+            printf("block return\n");
             return _acme_;
         }
         /* if i == ACME_BLOCK_BREAK, just fall through */
     }
     thing _acme_t;
     _acme_t = new_i_thing(100);
+    printf("bottom return\n");
     return _acme_;
 }
