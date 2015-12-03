@@ -21,15 +21,9 @@ typedef struct _caller_env caller_env[1];
 
 typedef __jmp_buf block_env;
 
-/* This is in the if statement, to setup the jmp_buf */
-/* Modeled on setjmp */
-extern int64_t block_caller_yield_outer(caller_env c_env)
+/* Modeled on setjmp, followed by longjmp, but doesn't set sp */
+extern int64_t block_caller_yield(caller_env c_env, block_env b_env)
     __THROWNL;
-
-/* This is used inside the "setjmp == 0" code of a yield to invoke the block */
-/* Modeled on longjmp, but doesn't set sp */
-extern void block_caller_yield_inner(block_env b_env)
-    __THROWNL __attribute__ ((__noreturn__));
 
 /* When a block leaves, control returns to the block caller.  If the manner */
 /* of leaving was anything other than a next, then the block caller will */

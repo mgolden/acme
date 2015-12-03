@@ -25,13 +25,19 @@
 
 #define ACME_BLOCK_INVOKE $1
 
-/* Modeled on setjmp, difference: */
-/* returns (int64_t) 0 */
+/* Modeled on setjmp followed by longjmp */
+/* Note that the longjump part pops the return address off the stack, */
+/* (as we never return to the caller from here), and it doesn't change */
+/* the SP, as we don't want to lose the block_caller's stuff on the top */
+/* of the stack.  We set rax to the ACME_BLOCK_INVOKE so the block knows */
+/* that it is being invoked */
 
-/* extern int64_t block_caller_yield_outer(caller_env c_env) */
+/* extern int64_t block_caller_yield(caller_env c_env, block_env b_env) */
 
-ENTRY (block_caller_yield_outer)
-	/* Save registers.  */
+	.text
+ENTRY (block_caller_yield)
+	/* First the setjmp part */
+	/* Save registers into caller_env (register di).  */
 	movq %rbx, (JB_RBX*8)(%rdi)
 #ifdef PTR_MANGLE
 # ifdef __ILP32__
@@ -56,19 +62,63 @@ ENTRY (block_caller_yield_outer)
 	PTR_MANGLE (%RDX_LP)
 #endif
 	movq %rdx, (JB_RSP*8)(%rdi)
-	mov (%rsp), %RAX_LP	/* Save PC we are returning to now.  */
+	/* Save PC we are returning to now. */
+	/* Unlike the original setjmp, we are popping this instead of just taking (%sp), */
+	/* because we don't want the return address on the stack anymore */
+	pop %RAX_LP
 	LIBC_PROBE (setjmp, 3, LP_SIZE@%RDI_LP, -4@%esi, LP_SIZE@%RAX_LP)
 #ifdef PTR_MANGLE
 	PTR_MANGLE (%RAX_LP)
 #endif
 	movq %rax, (JB_PC*8)(%rdi)
-        /* Return 0 */
-	xorq %rax, %rax
-	ret
-END (block_caller_yield_outer)
+
+	
+	/* Now the longjmp part */
+	/* Restore registers from block_env (register si).  */
+	mov (JB_RSP*8)(%rsi),%R8_LP
+	mov (JB_RBP*8)(%rsi),%R9_LP
+	mov (JB_PC*8)(%rsi),%RDX_LP
+#ifdef PTR_DEMANGLE
+	PTR_DEMANGLE (%R8_LP)
+	PTR_DEMANGLE (%R9_LP)
+	PTR_DEMANGLE (%RDX_LP)
+# ifdef __ILP32__
+	/* We ignored the high bits of the %rbp value because only the low
+	   bits are mangled.  But we cannot presume that %rbp is being used
+	   as a pointer and truncate it, so recover the high bits.  */
+	movl (JB_RBP*8 + 4)(%rsi), %eax
+	shlq $32, %rax
+	orq %rax, %r9
+# endif
+#endif
+	LIBC_PROBE (longjmp, 3, LP_SIZE@%RDI_LP, -4@%esi, LP_SIZE@%RDX_LP)
+	/* We add unwind information for the target here.  */
+	cfi_def_cfa(%rsi, 0)
+	/* cfi_register(%rsp,%r8) SP is not going to be set by this */
+	cfi_register(%rbp,%r9)
+	cfi_register(%rip,%rdx)
+	cfi_offset(%rbx,JB_RBX*8)
+	cfi_offset(%r12,JB_R12*8)
+	cfi_offset(%r13,JB_R13*8)
+	cfi_offset(%r14,JB_R14*8)
+	cfi_offset(%r15,JB_R15*8)
+	movq (JB_RBX*8)(%rsi),%rbx
+	movq (JB_R12*8)(%rsi),%r12
+	movq (JB_R13*8)(%rsi),%r13
+	movq (JB_R14*8)(%rsi),%r14
+	movq (JB_R15*8)(%rsi),%r15
+	/* Set return value for setjmp.  */
+	movq ACME_BLOCK_INVOKE, %rax
+	/* DO NOT SET THE STACK POINTER, only BP, so NO: mov %R8_LP,%RSP_LP */
+	movq %r9,%rbp
+	LIBC_PROBE (longjmp_target, 3,
+		    LP_SIZE@%RDI_LP, -4@%eax, LP_SIZE@%RDX_LP)
+	jmpq *%rdx
+END (block_caller_yield)
 
 
-/* Identical to above */
+/* Modeled on setjmp, difference: */
+/* (a) returns (int64_t) 0 */
 
 /* extern int64_t block_define(block_env b_env) */
 
@@ -108,57 +158,6 @@ ENTRY (block_define)
 	xorq %rax, %rax
 	ret
 END (block_define)
-
-
-/* Modeled on longjmp with two differences */
-/* (a) do not reset SP (top of stack stays as it was) */
-/* (b) return ACME_BLOCK_INVOKE */
-
-/* extern void block_caller_yield_inner(block_env b_env) */
-
-	.text
-ENTRY(block_caller_yield_inner)
-	/* Restore registers.  */
-	mov (JB_RSP*8)(%rdi),%R8_LP
-	mov (JB_RBP*8)(%rdi),%R9_LP
-	mov (JB_PC*8)(%rdi),%RDX_LP
-#ifdef PTR_DEMANGLE
-	PTR_DEMANGLE (%R8_LP)
-	PTR_DEMANGLE (%R9_LP)
-	PTR_DEMANGLE (%RDX_LP)
-# ifdef __ILP32__
-	/* We ignored the high bits of the %rbp value because only the low
-	   bits are mangled.  But we cannot presume that %rbp is being used
-	   as a pointer and truncate it, so recover the high bits.  */
-	movl (JB_RBP*8 + 4)(%rdi), %eax
-	shlq $32, %rax
-	orq %rax, %r9
-# endif
-#endif
-	LIBC_PROBE (longjmp, 3, LP_SIZE@%RDI_LP, -4@%esi, LP_SIZE@%RDX_LP)
-	/* We add unwind information for the target here.  */
-	cfi_def_cfa(%rdi, 0)
-	/* cfi_register(%rsp,%r8) SP is not going to be set by this */
-	cfi_register(%rbp,%r9)
-	cfi_register(%rip,%rdx)
-	cfi_offset(%rbx,JB_RBX*8)
-	cfi_offset(%r12,JB_R12*8)
-	cfi_offset(%r13,JB_R13*8)
-	cfi_offset(%r14,JB_R14*8)
-	cfi_offset(%r15,JB_R15*8)
-	movq (JB_RBX*8)(%rdi),%rbx
-	movq (JB_R12*8)(%rdi),%r12
-	movq (JB_R13*8)(%rdi),%r13
-	movq (JB_R14*8)(%rdi),%r14
-	movq (JB_R15*8)(%rdi),%r15
-	/* Set return value for setjmp.  */
-	movq ACME_BLOCK_INVOKE, %rax
-	/* DO NOT SET THE STACK POINTER, only BP, so NO: mov %R8_LP,%RSP_LP */
-	movq %r9,%rbp
-	LIBC_PROBE (longjmp_target, 3,
-		    LP_SIZE@%RDI_LP, -4@%eax, LP_SIZE@%RDX_LP)
-	jmpq *%rdx
-END (block_caller_yield_inner)
 
 
 /* Modeled on longjmp, difference: */

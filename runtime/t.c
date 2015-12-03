@@ -10,9 +10,6 @@ thing print(thing t) {
 
 
 int main(int argc, char **argv) {
-    caller_env c_env;
-    int64_t ret_type = block_caller_yield_outer(c_env);
-    printf("ret_type = %ld\n", ret_type);
     thing t = baz();
     print(t);
     return 0;
@@ -32,21 +29,16 @@ thing bar(thing x, thing y, block_env b_env, caller_env c_env, thing * p1, thing
     thing _acme_l;
     {
         /* This is the yield statement itself */
-        int64_t ret_type = block_caller_yield_outer(c_env);
-        /* This sets caller env */
-        if(!ret_type) {
-            (*p1) = _acme_z;
-            (*p2) = new_i_thing(2);
-            (*p3) = new_i_thing(4);
-            block_caller_yield_inner(b_env);
-        }
-        else if(ret_type!=ACME_BLOCK_NEXT) {
+        (*p3) = new_i_thing(4);
+        (*p2) = new_i_thing(2);
+        (*p1) = _acme_z;
+        int64_t ret_type;
+        if((ret_type = block_caller_yield(c_env, b_env)) != ACME_BLOCK_NEXT) {
             printf("about to block_caller_leave %ld\n", ret_type);
             block_caller_leave(b_env, ret_type);
         }
-        else { /* BLOCK_NEXT */
-            _acme_l = (*c_env).t;
-        }
+        /* BLOCK_NEXT */
+        _acme_l = (*c_env).t;
     }
     thing _acme_m;
     _acme_ = _acme_m = new_i_thing(20);
