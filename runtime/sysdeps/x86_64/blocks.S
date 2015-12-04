@@ -15,10 +15,16 @@
    License along with the GNU C Library; if not, see
    <http://www.gnu.org/licenses/>.  */
 
+/* In glibc/sysdeps/x86_64 */
 #include <sysdep.h>
 #include <jmpbuf-offsets.h>
+/* In glibc/sysdeps/generic */
 #include <asm-syntax.h>
+/* In glibc/include */
 #include <stap-probe.h>
+/* In glibc-build */
+#include <libc-modules.h>
+#include <libc-symbols.h>
 
 /* Note that PTR_MANGLE is defined in */
 /* glibc/sysdeps/unix/sysv/linux/x86_64/sysdep.h */
@@ -65,7 +71,7 @@ ENTRY (block_caller_yield)
 	/* Save PC we are returning to now. */
 	/* Unlike the original setjmp, we are popping this instead of just taking (%sp), */
 	/* because we don't want the return address on the stack anymore */
-	pop %RAX_LP
+	popq %RAX_LP
 	LIBC_PROBE (setjmp, 3, LP_SIZE@%RDI_LP, -4@%esi, LP_SIZE@%RAX_LP)
 #ifdef PTR_MANGLE
 	PTR_MANGLE (%RAX_LP)
