@@ -216,6 +216,7 @@ int main(int argc, char **argv)
 %type <code_hunk> array
 %type <code_hunk> expr_list
 %type <code_hunk> pure_expr_list
+%type <code_hunk> yield_expr_list
 %type <code_hunk> hash
 %type <code_hunk> hash_list
 %type <code_hunk> hash_element
@@ -634,9 +635,9 @@ val:
     $$ = CCH3(push_stack(n), $3, pop_stack(n));
     $$->locvars = 0;
   }
-  | TOKYIELD argument_list
+  | TOKYIELD yield_expr_list
   {
-    $$ = CCH($2, emit_yield($2->comexprs));
+    $$ = emit_yield($2);
   }
   ;
 
@@ -872,14 +873,30 @@ pure_expr_list:
     $$ = $1;
     $$->comexprs = 1;
   }
-  |
-  pure_expr_list TOKCOMMA expr
+  | pure_expr_list TOKCOMMA expr
   {
     $$ = CCH($3, $1); /* Note: pushing on stack in reverse order */
     $$->comexprs++;
   }
   ;
 
+yield_expr_list:
+  expr
+  {
+    $$ = CCH3(CHS("(*p1) = "), $1, ";\n");
+    $$->comexprs = 1;
+  }
+  | yield_expr_list TOKCOMMA expr
+  {
+    int n = $1->comexprs + 1;
+    char x[40];
+    sprintf(x, "(*p%d) = ", n);
+    /* Note that this evaluates the ops from right to left */
+    $$ = CCH3(CHS(x), $3, ";\n", $1);
+    $$->comexprs = n;
+  }
+  ;
+  
 hash:
   TOKLBRACE TOKRBRACE
   {
@@ -912,7 +929,10 @@ hash_element:
   ;
 
 argument_list:
-  TOKLPAREN TOKRPAREN
+  {
+    $$ = NULL;
+  }
+  | TOKLPAREN TOKRPAREN
   {
     $$ = NULL;
   }
