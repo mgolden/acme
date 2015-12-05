@@ -22,19 +22,19 @@ typedef struct _caller_env caller_env[1];
 typedef __jmp_buf block_env;
 
 /* Modeled on setjmp, followed by longjmp, but doesn't set sp */
-extern int64_t block_caller_yield(caller_env c_env, block_env b_env)
+extern int block_caller_yield(caller_env c_env, block_env b_env)
     __THROWNL;
 
 /* When a block leaves, control returns to the block caller.  If the manner */
 /* of leaving was anything other than a next, then the block caller will */
 /* immediately leave via this call, passing back the return type.  
 /* Modeled on longjmp */
-extern void block_caller_leave(block_env b_env, int64_t ret_type)
+extern void block_caller_leave(block_env b_env, int ret_type)
     __THROWNL __attribute__ ((__noreturn__));
 
 /* Used at the top of a block, in the function that defines the block */
-/* This is exactly the same as setjmp, but returns an int64_t */
-extern int64_t block_define(block_env b_env)
+/* This is exactly the same as setjmp */
+extern int block_define(block_env b_env)
     __THROWNL;
     
 /* This is used to leave a block */
@@ -42,5 +42,5 @@ extern int64_t block_define(block_env b_env)
 /* out the bottom of a block is the same as next.  The third parameter here */
 /* is one of the #defines above signaling which one happened */
 /* Modeled on longjmp */
-extern void block_leave(caller_env c_env, thing t, int64_t ret_type)
+extern void block_leave(caller_env c_env, thing t, int ret_type)
     __THROWNL __attribute__ ((__noreturn__));

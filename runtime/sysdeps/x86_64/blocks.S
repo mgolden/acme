@@ -38,7 +38,7 @@
 /* of the stack.  We set rax to the ACME_BLOCK_INVOKE so the block knows */
 /* that it is being invoked */
 
-/* extern int64_t block_caller_yield(caller_env c_env, block_env b_env) */
+/* extern int block_caller_yield(caller_env c_env, block_env b_env) */
 
 	.text
 ENTRY (block_caller_yield)
@@ -123,10 +123,9 @@ ENTRY (block_caller_yield)
 END (block_caller_yield)
 
 
-/* Modeled on setjmp, difference: */
-/* (a) returns (int64_t) 0 */
+/* Modeled on setjmp */
 
-/* extern int64_t block_define(block_env b_env) */
+/* extern int block_define(block_env b_env) */
 
 ENTRY (block_define)
 	/* Save registers.  */
@@ -166,10 +165,9 @@ ENTRY (block_define)
 END (block_define)
 
 
-/* Modeled on longjmp, difference: */
-/* (a) returns an int64_t instead of int */
+/* Modeled on longjmp */
 
-/* extern void block_caller_leave(block_env b_env, int64_t ret_type) */
+/* extern void block_caller_leave(block_env b_env, int ret_type) */
 
 	.text
 ENTRY(block_caller_leave)
@@ -207,7 +205,7 @@ ENTRY(block_caller_leave)
 	movq (JB_R14*8)(%rdi),%r14
 	movq (JB_R15*8)(%rdi),%r15
 	/* Set return value for setjmp.  */
-	movq %rsi, %rax
+	movl %esi, %eax
         /* Finish registers and go */
 	mov %R8_LP,%RSP_LP
 	movq %r9,%rbp
@@ -218,10 +216,9 @@ END (block_caller_leave)
 
 
 /* Modeled on longjmp.  Differences */
-/* (a) returns a int64_t */
-/* (b) Uses a caller_env, so sets the value of the thing therein */
+/* (a) Uses a caller_env, so sets the value of the thing therein */
 
-/* extern void block_leave(caller_env c_env, thing t, int64_t ret_type) */
+/* extern void block_leave(caller_env c_env, thing t, int ret_type) */
 
 	.text
 ENTRY(block_leave)
@@ -259,7 +256,7 @@ ENTRY(block_leave)
 	movq (JB_R14*8)(%rdi),%r14
 	movq (JB_R15*8)(%rdi),%r15
 	/* Set return value for setjmp.  */
-	movq %rcx, %rax
+	movl %ecx, %eax
 	/* Stick the thing into the caller_env */
 	movq %rsi, (JB_SIZE)(%rdi)
 	movq %rdx, (JB_SIZE+8)(%rdi)

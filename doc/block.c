@@ -54,9 +54,9 @@ thing bar(thing x, thing y, block_env b_env, caller_env c_env, thing * p1, thing
         (*p3) = new_i_thing(4);
         (*p2) = new_i_thing(2);
         (*p1) = _acme_z;
-        int64_t ret_type;
+        int ret_type;
         if((ret_type = block_caller_yield(c_env, b_env)) != ACME_BLOCK_NEXT) {
-            printf("about to block_caller_leave %ld\n", ret_type);
+            printf("about to block_caller_leave %d\n", ret_type);
             block_caller_leave(b_env, ret_type);
         }
         /* BLOCK_NEXT */
@@ -81,7 +81,7 @@ thing baz(void) {
         thing _acme_z;
         caller_env c_env;
         block_env b_env;
-        int64_t ret_type;
+        int ret_type;
         if(!(ret_type = block_define(b_env))) {
             // _acme_ = call_send(0, get_self(), new_sym_thing("bar"), r, s, block_env, caller_env, &v, &w, &z);
             printf("about to call bar()\n");
